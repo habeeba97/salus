@@ -1,0 +1,24 @@
+{
+  "expo": {
+    "name": "Salus",
+    "slug": "salus",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "salus",
+    "userInterfaceStyle": "automatic",
+    "plugins": [
+      "expo-router",
+      "expo-status-bar",
+      "expo-font"
+    ],
+    "android": {
+      "package": "com.salus.app"
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "a5c4ae16-3b03-42de-93f3-1496a99834a3"
+      }
+    }
+  }
+}
