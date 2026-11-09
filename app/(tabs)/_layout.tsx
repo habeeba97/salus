@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 import React from 'react';
-import { View } from 'react-native';
+import { View, type ColorValue } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SafetyHelpButton } from '../../src/components/SafetyHelpButton';
 import { fontFamilies } from '../../src/theme/fonts';
@@ -11,7 +11,7 @@ import { useTheme } from '../../src/theme/ThemeProvider';
 type IconName = React.ComponentProps<typeof Ionicons>['name'];
 
 function tabIcon(active: IconName, inactive: IconName, pillColor: string) {
-  return function TabIcon({ focused, color, size }: { focused: boolean; color: string; size: number }) {
+  return function TabIcon({ focused, color, size }: { focused: boolean; color: ColorValue; size: number }) {
     return (
       <View
         style={{

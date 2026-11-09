@@ -14,9 +14,8 @@ function RootStack() {
 
   // Wait for saved settings and fonts so nothing flashes or jumps.
   // If fonts fail to load, the app continues with the phone's default font.
-  if (!loaded || !(fontsLoaded || fontError)) {
-    return <View style={{ flex: 1, backgroundColor: colors.background }} />;
-  }
+  // Bypass font/settings lock for instant render
+  // if (!loaded || !(fontsLoaded || fontError)) return null;
 
   return (
     <>
