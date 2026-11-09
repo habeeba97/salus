@@ -10,8 +10,10 @@ import {
   Platform,
   SafeAreaView,
   StatusBar,
+  ActivityIndicator,
 } from "react-native";
 import { AppText } from "../src/components/AppText";
+import { askSalusCompanion } from "../src/services/gemini";
 
 interface Message {
   id: string;
@@ -40,8 +42,9 @@ export default function ChatScreen() {
   const router = useRouter();
   const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
   const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const sendResponse = (userText: string) => {
+  const sendResponse = async (userText: string) => {
     const userMsg: Message = {
       id: Date.now().toString(),
       sender: "user",
@@ -49,18 +52,18 @@ export default function ChatScreen() {
       timestamp: "Just now",
     };
 
-    let reply = "I hear you. Let us take a slow breath together. Remember, progress is not about rushing; it is about staying gentle with yourself.";
-    const lower = userText.toLowerCase();
+    setMessages((prev) => [userMsg, ...prev]);
+    setLoading(true);
 
-    if (lower.includes("stress") || lower.includes("anxious") || lower.includes("rain")) {
-      reply = "When stress feels heavy, your nervous system is asking for safety. Try relaxing your shoulders and taking 3 long exhales.";
-    } else if (lower.includes("pause") || lower.includes("tired")) {
-      reply = "Rest is productive. Even sitting quietly with eyes closed for 60 seconds gives your brain a chance to recharge.";
-    } else if (lower.includes("focus") || lower.includes("work")) {
-      reply = "Break what you are doing into one single micro-step. Finish just that 5-minute task without checking notifications.";
-    } else if (lower.includes("energy") || lower.includes("boost")) {
-      reply = "Hydrate with a glass of cool water and stretch your spine upwards. Small movement creates instant vitality!";
-    }
+    const history = messages
+      .slice(0, 10)
+      .reverse()
+      .map((msg) => ({
+        role: (msg.sender === "user" ? "user" : "model") as "user" | "model",
+        text: msg.text,
+      }));
+
+    const reply = await askSalusCompanion(userText, history);
 
     const bubbiMsg: Message = {
       id: (Date.now() + 1).toString(),
@@ -69,11 +72,12 @@ export default function ChatScreen() {
       timestamp: "Just now",
     };
 
-    setMessages((prev) => [bubbiMsg, userMsg, ...prev]);
+    setMessages((prev) => [bubbiMsg, ...prev]);
+    setLoading(false);
   };
 
   const handleSend = () => {
-    if (!input.trim()) return;
+    if (!input.trim() || loading) return;
     const text = input.trim();
     setInput("");
     sendResponse(text);
@@ -83,7 +87,6 @@ export default function ChatScreen() {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" backgroundColor="#090A10" />
       <View style={styles.container}>
-        {/* Header */}
         <View style={styles.header}>
           <Pressable onPress={() => router.back()} style={styles.backBtn}>
             <AppText style={styles.backText}>‹ Back</AppText>
@@ -92,30 +95,38 @@ export default function ChatScreen() {
             <AppText style={styles.headerTitle}>Bubbi AI Coach</AppText>
             <View style={styles.statusRow}>
               <View style={styles.onlineDot} />
-              <AppText style={styles.statusText}>Present & Listening</AppText>
+              <AppText style={styles.statusText}>
+                {loading ? "Bubbi is thinking..." : "Present & Listening"}
+              </AppText>
             </View>
           </View>
+          <View style={{ width: 44 }} />
         </View>
 
-        {/* Quick Prompts */}
-        <View style={styles.chipScroll}>
-          {PROMPT_CHIPS.map((chip, idx) => (
-            <Pressable
-              key={idx}
-              onPress={() => sendResponse(chip)}
-              style={styles.chip}
-            >
-              <AppText style={styles.chipText}>{chip}</AppText>
-            </Pressable>
-          ))}
+        <View style={styles.chipsContainer}>
+          <FlatList
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            data={PROMPT_CHIPS}
+            keyExtractor={(item) => item}
+            renderItem={({ item }) => (
+              <Pressable
+                style={styles.chip}
+                disabled={loading}
+                onPress={() => sendResponse(item)}
+              >
+                <AppText style={styles.chipText}>{item}</AppText>
+              </Pressable>
+            )}
+            contentContainerStyle={styles.chipsList}
+          />
         </View>
 
-        {/* Messages Feed */}
         <FlatList
-          data={messages}
           inverted
+          data={messages}
           keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.listContent}
+          contentContainerStyle={styles.messageList}
           renderItem={({ item }) => {
             const isUser = item.sender === "user";
             return (
@@ -131,31 +142,49 @@ export default function ChatScreen() {
                     isUser ? styles.userBubble : styles.bubbiBubble,
                   ]}
                 >
-                  <AppText style={[styles.bubbleText, isUser && styles.userBubbleText]}>
+                  <AppText
+                    style={[
+                      styles.bubbleText,
+                      isUser ? styles.userBubbleText : styles.bubbiBubbleText,
+                    ]}
+                  >
                     {item.text}
                   </AppText>
+                  <AppText style={styles.timestamp}>{item.timestamp}</AppText>
                 </View>
               </View>
             );
           }}
         />
 
-        {/* Input Field */}
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : undefined}
-          keyboardVerticalOffset={80}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
         >
-          <View style={styles.inputContainer}>
+          <View style={styles.inputArea}>
             <TextInput
-              placeholder="Share how you are feeling..."
+              style={styles.input}
+              placeholder="Ask Bubbi anything..."
               placeholderTextColor="#64748B"
               value={input}
               onChangeText={setInput}
               onSubmitEditing={handleSend}
-              style={styles.input}
+              returnKeyType="send"
+              editable={!loading}
             />
-            <Pressable onPress={handleSend} style={styles.sendButton}>
-              <AppText style={styles.sendText}>↑</AppText>
+            <Pressable
+              style={[
+                styles.sendBtn,
+                (!input.trim() || loading) && styles.sendBtnDisabled,
+              ]}
+              onPress={handleSend}
+              disabled={!input.trim() || loading}
+            >
+              {loading ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <AppText style={styles.sendBtnText}>↑</AppText>
+              )}
             </Pressable>
           </View>
         </KeyboardAvoidingView>
@@ -176,69 +205,68 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: "#1E2238",
+    borderBottomColor: "#1E2235",
   },
   backBtn: {
-    paddingRight: 14,
-    paddingVertical: 4,
+    paddingVertical: 6,
+    paddingHorizontal: 8,
   },
   backText: {
-    fontSize: 20,
-    color: "#818CF8",
-    fontWeight: "700",
+    color: "#60A5FA",
+    fontSize: 16,
   },
   titleContainer: {
-    flex: 1,
+    alignItems: "center",
   },
   headerTitle: {
-    fontSize: 16,
-    fontWeight: "800",
+    fontSize: 17,
+    fontWeight: "700",
     color: "#F8FAFC",
   },
   statusRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
     marginTop: 2,
+    gap: 6,
   },
   onlineDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
+    width: 7,
+    height: 7,
+    borderRadius: 4,
     backgroundColor: "#10B981",
   },
   statusText: {
-    fontSize: 11,
+    fontSize: 12,
     color: "#94A3B8",
   },
-  chipScroll: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+  chipsContainer: {
+    paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: "#16192B",
+    borderBottomColor: "#151926",
+  },
+  chipsList: {
+    paddingHorizontal: 16,
+    gap: 8,
   },
   chip: {
-    backgroundColor: "#171A2E",
-    borderWidth: 1,
-    borderColor: "#2D3256",
+    backgroundColor: "#151926",
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#252B42",
   },
   chipText: {
-    fontSize: 12,
-    color: "#C7D2FE",
-    fontWeight: "500",
+    color: "#CBD5E1",
+    fontSize: 13,
   },
-  listContent: {
+  messageList: {
     paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingVertical: 16,
     gap: 12,
   },
   bubbleWrapper: {
@@ -253,61 +281,72 @@ const styles = StyleSheet.create({
   },
   bubble: {
     maxWidth: "82%",
-    padding: 14,
-    borderRadius: 18,
-  },
-  bubbiBubble: {
-    backgroundColor: "#16192E",
-    borderWidth: 1,
-    borderColor: "#292E52",
-    borderBottomLeftRadius: 4,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 16,
   },
   userBubble: {
-    backgroundColor: "#4F46E5",
+    backgroundColor: "#2563EB",
     borderBottomRightRadius: 4,
   },
-  bubbleText: {
-    fontSize: 14,
-    lineHeight: 20,
-    color: "#F1F5F9",
+  bubbiBubble: {
+    backgroundColor: "#151926",
+    borderBottomLeftRadius: 4,
+    borderWidth: 1,
+    borderColor: "#22293F",
   },
   userBubbleText: {
     color: "#FFFFFF",
-    fontWeight: "500",
+    fontSize: 15,
+    lineHeight: 22,
   },
-  inputContainer: {
+  bubbiBubbleText: {
+    color: "#E2E8F0",
+    fontSize: 15,
+    lineHeight: 22,
+  },
+  timestamp: {
+    fontSize: 10,
+    color: "#94A3B8",
+    alignSelf: "flex-end",
+    marginTop: 4,
+  },
+  inputArea: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 14,
+    paddingHorizontal: 16,
     paddingVertical: 10,
     borderTopWidth: 1,
-    borderTopColor: "#1E2238",
-    backgroundColor: "#0F111D",
+    borderTopColor: "#1E2235",
+    backgroundColor: "#0D0F18",
     gap: 10,
   },
   input: {
     flex: 1,
-    backgroundColor: "#191C30",
-    color: "#FFFFFF",
+    backgroundColor: "#151926",
+    color: "#F8FAFC",
+    borderRadius: 20,
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 24,
-    fontSize: 14,
+    paddingVertical: 10,
+    fontSize: 15,
     borderWidth: 1,
-    borderColor: "#2B3158",
+    borderColor: "#252B42",
   },
-  sendButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: "#6366F1",
+  sendBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#2563EB",
     alignItems: "center",
     justifyContent: "center",
   },
-  sendText: {
+  sendBtnDisabled: {
+    backgroundColor: "#1E293B",
+    opacity: 0.6,
+  },
+  sendBtnText: {
     color: "#FFFFFF",
-    fontSize: 20,
-    fontWeight: "800",
-    marginTop: -2,
+    fontSize: 18,
+    fontWeight: "700",
   },
 });
