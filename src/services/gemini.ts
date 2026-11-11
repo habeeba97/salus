@@ -31,41 +31,36 @@ export async function askSalusCompanion(userMessage: string, history: { role: "u
     }
   ];
 
-  const modelsToTry = ["gemini-2.0-flash", "gemini-2.5-flash"];
-  let finalError = "";
-
-  for (const model of modelsToTry) {
-    try {
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            contents,
-            generationConfig: {
-              temperature: 0.7,
-              maxOutputTokens: 800,
-            }
-          }),
-        }
-      );
-
-      const data = await response.json();
-
-      if (data.candidates?.[0]?.content?.parts?.[0]?.text) {
-        return data.candidates[0].content.parts[0].text;
+  try {
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          contents,
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 800,
+          }
+        }),
       }
+    );
 
-      if (data.error) {
-        finalError = `${model}: ${data.error.message}`;
-      }
-    } catch (err: any) {
-      finalError = err.message || "Network issue";
+    const data = await response.json();
+
+    if (data.candidates?.[0]?.content?.parts?.[0]?.text) {
+      return data.candidates[0].content.parts[0].text;
     }
-  }
 
-  return `Google API error: ${finalError}`;
+    if (data.error) {
+      return `Google API error: ${data.error.message || "Model failed"}`;
+    }
+
+    return "I am listening, but could not formulate a response. How are you feeling right now?";
+  } catch (err: any) {
+    return `Connection error: ${err.message || "Network issue"}`;
+  }
 }
