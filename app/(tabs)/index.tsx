@@ -1,9 +1,9 @@
 import { useRouter } from "expo-router";
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { View, Pressable, StyleSheet, ScrollView } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppText } from "../../src/components/AppText";
 import { Screen } from "../../src/components/Screen";
+import { IndianNourishSection } from "../../src/components/IndianNourishSection";
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -15,6 +15,9 @@ export default function HomeScreen() {
           <AppText style={styles.kicker}>SALUS • BIOLOGICAL SANCTUARY</AppText>
           <AppText style={styles.title}>Nervous State & Sanctuary</AppText>
         </View>
+
+        {/* Pan-India Wholesome Nourishment Carousel */}
+        <IndianNourishSection />
 
         {/* Alchemy Sanctuary Portal */}
         <Pressable onPress={() => router.push("/alchemy")} style={styles.alchemyCard}>
@@ -80,7 +83,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   screenBg: { backgroundColor: "#090A10" },
   scroll: { paddingBottom: 40, gap: 16 },
-  header: { paddingTop: 8 },
+  header: { paddingTop: 8, paddingHorizontal: 16 },
   kicker: { fontSize: 10, fontWeight: "800", color: "#818CF8", letterSpacing: 1.5 },
   title: { fontSize: 24, fontWeight: "800", color: "#F8FAFC", marginTop: 4 },
   rowBetween: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
@@ -89,6 +92,7 @@ const styles = StyleSheet.create({
   purpleTag: { fontSize: 9, fontWeight: "900", color: "#C084FC", letterSpacing: 1.2 },
   enterText: { fontSize: 11, color: "#C084FC", fontWeight: "800" },
   alchemyCard: {
+    marginHorizontal: 16,
     backgroundColor: "#151028",
     borderRadius: 22,
     padding: 18,
@@ -97,6 +101,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   defuserCard: {
+    marginHorizontal: 16,
     backgroundColor: "#0D0E1C",
     borderRadius: 22,
     padding: 18,
@@ -116,7 +121,7 @@ const styles = StyleSheet.create({
   },
   cardTitle: { fontSize: 16, fontWeight: "800", color: "#FFFFFF" },
   cardSub: { fontSize: 12, color: "#CBD5E1", lineHeight: 17 },
-  grid: { flexDirection: "row", gap: 12 },
+  grid: { flexDirection: "row", gap: 12, paddingHorizontal: 16 },
   tile: {
     flex: 1,
     backgroundColor: "#131627",
@@ -130,6 +135,7 @@ const styles = StyleSheet.create({
   tileTitle: { fontSize: 15, fontWeight: "700", color: "#FFFFFF" },
   tileSub: { fontSize: 11, color: "#94A3B8" },
   safetyCard: {
+    marginHorizontal: 16,
     backgroundColor: "#1A1523",
     paddingVertical: 14,
     borderRadius: 14,
