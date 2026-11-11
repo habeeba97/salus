@@ -1,25 +1,25 @@
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import React from 'react';
-import { View } from 'react-native';
+import React, { useState } from 'react';
 import { SettingsProvider, useSettings } from '../src/store/SettingsProvider';
 import { fontAssets, fontFamilies } from '../src/theme/fonts';
 import { ThemeProvider, useTheme } from '../src/theme/ThemeProvider';
+import { DailyFactSplash } from '../src/components/DailyFactSplash';
 
 function RootStack() {
   const { loaded } = useSettings();
   const { colors, isDark } = useTheme();
   const [fontsLoaded, fontError] = useFonts(fontAssets);
-
-  // Wait for saved settings and fonts so nothing flashes or jumps.
-  // If fonts fail to load, the app continues with the phone's default font.
-  // Bypass font/settings lock for instant render
-  // if (!loaded || !(fontsLoaded || fontError)) return null;
+  const [showFactSplash, setShowFactSplash] = useState(true);
 
   return (
     <>
       <StatusBar style={isDark ? 'light' : 'dark'} />
+      <DailyFactSplash
+        visible={showFactSplash}
+        onDismiss={() => setShowFactSplash(false)}
+      />
       <Stack
         screenOptions={{
           headerStyle: { backgroundColor: colors.surface },
