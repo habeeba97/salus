@@ -2,15 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { View, StyleSheet, Pressable, Animated, Easing } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppText } from "./AppText";
-
-interface Quest {
-  id: string;
-  title: string;
-  duration: string;
-  xp: string;
-  emoji: string;
-  category: string;
-}
+import { SomaticQuestModal, GuidedQuestData } from "./SomaticQuestModal";
 
 interface NervousState {
   id: string;
@@ -29,7 +21,7 @@ const NERVOUS_STATES: NervousState[] = [
     subLabel: "Sympathetic • Racing",
     accent: "#F43F5E",
     bubbiReply:
-      "Your system is in high gear. Start with the Physiological Double Sigh below to offload excess adrenaline.",
+      "Your system is in high gear. Tap the Physiological Double Sigh below to launch a 2-minute guided reset.",
   },
   {
     id: "foggy",
@@ -38,7 +30,7 @@ const NERVOUS_STATES: NervousState[] = [
     subLabel: "Dorsal • Low Battery",
     accent: "#A855F7",
     bubbiReply:
-      "Low energy is a signal to go slow. Try the Mindful Warm Herbal Sip to gently re-awaken digestion.",
+      "Low energy is a signal to go slow. Tap the Mindful Warm Herbal Sip to launch a gentle sensory timer.",
   },
   {
     id: "tender",
@@ -47,7 +39,7 @@ const NERVOUS_STATES: NervousState[] = [
     subLabel: "Sensitive • Overstimulated",
     accent: "#FBBF24",
     bubbiReply:
-      "Protect your quiet space right now. The 5-4-3-2-1 Sensory Anchor will bring you safely back into the room.",
+      "Protect your quiet space right now. Tap the 5-4-3-2-1 Sensory Anchor to ground safely in the room.",
   },
   {
     id: "grounded",
@@ -56,34 +48,55 @@ const NERVOUS_STATES: NervousState[] = [
     subLabel: "Ventral • Steady Flow",
     accent: "#10B981",
     bubbiReply:
-      "Beautiful ventral balance! Lock in this calm rhythm with one small somatic ritual today.",
+      "Beautiful ventral balance! Tap any ritual below to deepen your calm rhythm today.",
   },
 ];
 
-const DAILY_QUESTS: Quest[] = [
+const DAILY_QUESTS: GuidedQuestData[] = [
   {
     id: "vagal-sigh",
     title: "Physiological Double Sigh",
     duration: "2 mins",
+    durationSeconds: 120,
     xp: "+25 Calm",
     emoji: "🌬️",
     category: "Nervous System",
+    cueTitle: "Two quick inhales through the nose, one long sigh out",
+    phases: [
+      "Inhale deeply through your nose, then take a second quick top-up sip of air...",
+      "Exhale slowly and softly through pursed lips until your lungs feel empty...",
+      "Let your shoulders drop away from your ears as your heart rate slows...",
+    ],
   },
   {
     id: "warm-hydration",
     title: "Mindful Warm Herbal Sip",
     duration: "3 mins",
+    durationSeconds: 180,
     xp: "+20 Nourish",
     emoji: "🍵",
     category: "Gut & Vagus",
+    cueTitle: "Stimulate vagal digestion with warmth and slow pacing",
+    phases: [
+      "Hold your warm cup with both hands and feel the heat in your palms...",
+      "Inhale the gentle steam before taking a small, unhurried sip...",
+      "Notice the warmth traveling down your throat and softening your stomach...",
+    ],
   },
   {
     id: "sensory-ground",
     title: "5-4-3-2-1 Sensory Anchor",
     duration: "4 mins",
+    durationSeconds: 240,
     xp: "+30 Focus",
     emoji: "🌿",
     category: "Grounding",
+    cueTitle: "Orient your nervous system to safety in your immediate space",
+    phases: [
+      "Name 5 things you can see around you right now without judging them...",
+      "Notice 4 physical textures—your feet on the floor, fabric on your skin...",
+      "Listen for 3 subtle sounds in the room, then take one slow grounded breath...",
+    ],
   },
 ];
 
@@ -93,9 +106,9 @@ export function StreakAndQuestsSection() {
   const [completedIds, setCompletedIds] = useState<string[]>([]);
   const [streakCount, setStreakCount] = useState<number>(1);
   const [selectedState, setSelectedState] = useState<string | null>(null);
+  const [activeQuest, setActiveQuest] = useState<GuidedQuestData | null>(null);
   const mascotFloat = useRef(new Animated.Value(0)).current;
 
-  // Today's index (0 = Mon ... 6 = Sun)
   const jsDay = new Date().getDay();
   const todayIndex = jsDay === 0 ? 6 : jsDay - 1;
 
@@ -121,7 +134,6 @@ export function StreakAndQuestsSection() {
     };
     loadProgress();
 
-    // Gentle floating animation for Bubbi
     Animated.loop(
       Animated.sequence([
         Animated.timing(mascotFloat, {
@@ -150,14 +162,30 @@ export function StreakAndQuestsSection() {
     }
   };
 
-  const toggleQuest = async (id: string) => {
+  const markQuestComplete = async (id: string) => {
+    if (completedIds.includes(id)) return;
+    const updated = [...completedIds, id];
+    setCompletedIds(updated);
+
+    const newStreak = Math.max(1, streakCount);
+    setStreakCount(newStreak);
+
+    try {
+      const todayKey = new Date().toISOString().split("T")[0];
+      await AsyncStorage.setItem(`salus_quests_${todayKey}`, JSON.stringify(updated));
+      await AsyncStorage.setItem("salus_streak_count", String(newStreak));
+    } catch (e) {
+      // Ignore storage errors
+    }
+  };
+
+  const toggleQuestDirect = async (id: string) => {
     const exists = completedIds.includes(id);
     const updated = exists
       ? completedIds.filter((item) => item !== id)
       : [...completedIds, id];
 
     setCompletedIds(updated);
-
     const newStreak = updated.length > 0 ? Math.max(1, streakCount) : streakCount;
     setStreakCount(newStreak);
 
@@ -181,10 +209,10 @@ export function StreakAndQuestsSection() {
     }
     const hour = new Date().getHours();
     if (hour < 12) {
-      return "Subah bakhair! Tap how your nervous system feels right now to tailor today's pace.";
+      return "Subah bakhair! Tap how your nervous system feels right now, or launch a guided ritual below.";
     }
     if (hour < 18) {
-      return "Midday check-in: How is your energy right now? Tap a state above for a gentle reset.";
+      return "Midday check-in: Tap any somatic quest below to start a 2-minute guided reset.";
     }
     return "Evening wind-down: Check in with your body before softening the day's noise.";
   };
@@ -313,7 +341,7 @@ export function StreakAndQuestsSection() {
           return (
             <Pressable
               key={quest.id}
-              onPress={() => toggleQuest(quest.id)}
+              onPress={() => setActiveQuest(quest)}
               style={({ pressed }) => [
                 styles.questCard,
                 isDone && styles.questCardDone,
@@ -330,18 +358,31 @@ export function StreakAndQuestsSection() {
                     {quest.title}
                   </AppText>
                   <AppText style={styles.questMeta}>
-                    ⏱ {quest.duration} • <AppText style={styles.xpHighlight}>{quest.xp}</AppText>
+                    ⏱ {quest.duration} • <AppText style={styles.xpHighlight}>{quest.xp}</AppText> •{" "}
+                    <AppText style={styles.launchHint}>Tap to Start ▶</AppText>
                   </AppText>
                 </View>
               </View>
 
-              <View style={[styles.checkCircle, isDone && styles.checkCircleDone]}>
+              <Pressable
+                onPress={() => toggleQuestDirect(quest.id)}
+                hitSlop={10}
+                style={[styles.checkCircle, isDone && styles.checkCircleDone]}
+              >
                 {isDone && <AppText style={styles.checkMark}>✓</AppText>}
-              </View>
+              </Pressable>
             </Pressable>
           );
         })}
       </View>
+
+      {/* Guided Somatic Timer Modal */}
+      <SomaticQuestModal
+        quest={activeQuest}
+        visible={!!activeQuest}
+        onClose={() => setActiveQuest(null)}
+        onComplete={markQuestComplete}
+      />
     </View>
   );
 }
@@ -618,6 +659,10 @@ const styles = StyleSheet.create({
   },
   xpHighlight: {
     color: "#34D399",
+    fontWeight: "700",
+  },
+  launchHint: {
+    color: "#818CF8",
     fontWeight: "700",
   },
   checkCircle: {
