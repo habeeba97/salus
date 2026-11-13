@@ -12,6 +12,54 @@ interface Quest {
   category: string;
 }
 
+interface NervousState {
+  id: string;
+  label: string;
+  emoji: string;
+  subLabel: string;
+  accent: string;
+  bubbiReply: string;
+}
+
+const NERVOUS_STATES: NervousState[] = [
+  {
+    id: "wired",
+    label: "Wired",
+    emoji: "⚡",
+    subLabel: "Sympathetic • Racing",
+    accent: "#F43F5E",
+    bubbiReply:
+      "Your system is in high gear. Start with the Physiological Double Sigh below to offload excess adrenaline.",
+  },
+  {
+    id: "foggy",
+    label: "Foggy",
+    emoji: "🌫️",
+    subLabel: "Dorsal • Low Battery",
+    accent: "#A855F7",
+    bubbiReply:
+      "Low energy is a signal to go slow. Try the Mindful Warm Herbal Sip to gently re-awaken digestion.",
+  },
+  {
+    id: "tender",
+    label: "Tender",
+    emoji: "🫧",
+    subLabel: "Sensitive • Overstimulated",
+    accent: "#FBBF24",
+    bubbiReply:
+      "Protect your quiet space right now. The 5-4-3-2-1 Sensory Anchor will bring you safely back into the room.",
+  },
+  {
+    id: "grounded",
+    label: "Grounded",
+    emoji: "🌿",
+    subLabel: "Ventral • Steady Flow",
+    accent: "#10B981",
+    bubbiReply:
+      "Beautiful ventral balance! Lock in this calm rhythm with one small somatic ritual today.",
+  },
+];
+
 const DAILY_QUESTS: Quest[] = [
   {
     id: "vagal-sigh",
@@ -44,6 +92,7 @@ const WEEK_DAYS = ["M", "T", "W", "T", "F", "S", "S"];
 export function StreakAndQuestsSection() {
   const [completedIds, setCompletedIds] = useState<string[]>([]);
   const [streakCount, setStreakCount] = useState<number>(1);
+  const [selectedState, setSelectedState] = useState<string | null>(null);
   const mascotFloat = useRef(new Animated.Value(0)).current;
 
   // Today's index (0 = Mon ... 6 = Sun)
@@ -51,13 +100,16 @@ export function StreakAndQuestsSection() {
   const todayIndex = jsDay === 0 ? 6 : jsDay - 1;
 
   useEffect(() => {
-    // Load saved quests for today
     const loadProgress = async () => {
       try {
         const todayKey = new Date().toISOString().split("T")[0];
-        const saved = await AsyncStorage.getItem(`salus_quests_${todayKey}`);
-        if (saved) {
-          setCompletedIds(JSON.parse(saved));
+        const savedQuests = await AsyncStorage.getItem(`salus_quests_${todayKey}`);
+        if (savedQuests) {
+          setCompletedIds(JSON.parse(savedQuests));
+        }
+        const savedMood = await AsyncStorage.getItem(`salus_mood_${todayKey}`);
+        if (savedMood) {
+          setSelectedState(savedMood);
         }
         const savedStreak = await AsyncStorage.getItem("salus_streak_count");
         if (savedStreak) {
@@ -88,6 +140,16 @@ export function StreakAndQuestsSection() {
     ).start();
   }, []);
 
+  const handleSelectState = async (stateId: string) => {
+    setSelectedState(stateId);
+    try {
+      const todayKey = new Date().toISOString().split("T")[0];
+      await AsyncStorage.setItem(`salus_mood_${todayKey}`, stateId);
+    } catch (e) {
+      // Ignore storage errors
+    }
+  };
+
   const toggleQuest = async (id: string) => {
     const exists = completedIds.includes(id);
     const updated = exists
@@ -96,7 +158,6 @@ export function StreakAndQuestsSection() {
 
     setCompletedIds(updated);
 
-    // Update streak if at least 1 quest completed
     const newStreak = updated.length > 0 ? Math.max(1, streakCount) : streakCount;
     setStreakCount(newStreak);
 
@@ -105,22 +166,27 @@ export function StreakAndQuestsSection() {
       await AsyncStorage.setItem(`salus_quests_${todayKey}`, JSON.stringify(updated));
       await AsyncStorage.setItem("salus_streak_count", String(newStreak));
     } catch (e) {
-      // Ignore storage errors on private tabs
+      // Ignore storage errors
     }
   };
 
+  const activeStateObj = NERVOUS_STATES.find((s) => s.id === selectedState);
+
   const getGreetingMessage = () => {
-    const hour = new Date().getHours();
     if (completedIds.length === DAILY_QUESTS.length) {
       return "All daily rituals complete! Your nervous system is deeply grounded today. ✨";
     }
+    if (activeStateObj) {
+      return activeStateObj.bubbiReply;
+    }
+    const hour = new Date().getHours();
     if (hour < 12) {
-      return "Subah bakhair! Let's start slow—pick one gentle ritual to anchor your morning.";
+      return "Subah bakhair! Tap how your nervous system feels right now to tailor today's pace.";
     }
     if (hour < 18) {
-      return "Midday check-in: Unclench your jaw, drop your shoulders, and take one slow breath.";
+      return "Midday check-in: How is your energy right now? Tap a state above for a gentle reset.";
     }
-    return "Evening wind-down: Soften the day's noise with a small somatic reset.";
+    return "Evening wind-down: Check in with your body before softening the day's noise.";
   };
 
   const progressPercent = Math.round((completedIds.length / DAILY_QUESTS.length) * 100);
@@ -142,7 +208,7 @@ export function StreakAndQuestsSection() {
         <View style={styles.daysRow}>
           {WEEK_DAYS.map((day, idx) => {
             const isToday = idx === todayIndex;
-            const isCompleted = isToday && completedIds.length > 0;
+            const isCompleted = isToday && (completedIds.length > 0 || !!selectedState);
             return (
               <View key={idx} style={styles.dayCol}>
                 <View
@@ -168,7 +234,51 @@ export function StreakAndQuestsSection() {
         </View>
       </View>
 
-      {/* 2. Bubbi Companion Speech Bubble */}
+      {/* 2. Quick Mood & Nervous System Energy Check-In */}
+      <View style={styles.checkinCard}>
+        <View style={styles.checkinHeader}>
+          <AppText style={styles.checkinKicker}>NERVOUS SYSTEM CHECK-IN</AppText>
+          {activeStateObj && (
+            <AppText style={[styles.checkinStatus, { color: activeStateObj.accent }]}>
+              {activeStateObj.subLabel}
+            </AppText>
+          )}
+        </View>
+        <AppText style={styles.checkinPrompt}>How is your inner battery right now?</AppText>
+
+        <View style={styles.moodGrid}>
+          {NERVOUS_STATES.map((state) => {
+            const isSelected = selectedState === state.id;
+            return (
+              <Pressable
+                key={state.id}
+                onPress={() => handleSelectState(state.id)}
+                style={({ pressed }) => [
+                  styles.moodPill,
+                  isSelected && {
+                    backgroundColor: "rgba(255, 255, 255, 0.12)",
+                    borderColor: state.accent,
+                    borderWidth: 1.5,
+                  },
+                  pressed && styles.moodPillPressed,
+                ]}
+              >
+                <AppText style={styles.moodEmoji}>{state.emoji}</AppText>
+                <AppText
+                  style={[
+                    styles.moodLabel,
+                    isSelected && { color: "#FFFFFF", fontWeight: "800" },
+                  ]}
+                >
+                  {state.label}
+                </AppText>
+              </Pressable>
+            );
+          })}
+        </View>
+      </View>
+
+      {/* 3. Bubbi Companion Speech Bubble */}
       <View style={styles.companionRow}>
         <Animated.View
           style={[
@@ -178,13 +288,18 @@ export function StreakAndQuestsSection() {
         >
           <AppText style={styles.bubbiEmoji}>🐱</AppText>
         </Animated.View>
-        <View style={styles.speechBubble}>
+        <View
+          style={[
+            styles.speechBubble,
+            activeStateObj && { borderColor: activeStateObj.accent },
+          ]}
+        >
           <AppText style={styles.bubbiName}>BUBBI • COMPANION</AppText>
           <AppText style={styles.speechText}>{getGreetingMessage()}</AppText>
         </View>
       </View>
 
-      {/* 3. Interactive Daily Quests Deck */}
+      {/* 4. Interactive Daily Quests Deck */}
       <View style={styles.questsContainer}>
         <View style={styles.questsHeader}>
           <AppText style={styles.questsTitle}>Today's Somatic Quests</AppText>
@@ -313,6 +428,61 @@ const styles = StyleSheet.create({
     height: 4,
     borderRadius: 2,
     backgroundColor: "#FBBF24",
+  },
+  checkinCard: {
+    backgroundColor: "rgba(18, 22, 38, 0.84)",
+    borderRadius: 22,
+    padding: 15,
+    borderWidth: 1,
+    borderColor: "rgba(129, 140, 248, 0.3)",
+  },
+  checkinHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 4,
+  },
+  checkinKicker: {
+    fontSize: 9.5,
+    fontWeight: "800",
+    color: "#818CF8",
+    letterSpacing: 1,
+  },
+  checkinStatus: {
+    fontSize: 10.5,
+    fontWeight: "800",
+  },
+  checkinPrompt: {
+    fontSize: 14.5,
+    fontWeight: "700",
+    color: "#F8FAFC",
+    marginBottom: 12,
+  },
+  moodGrid: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 8,
+  },
+  moodPill: {
+    flex: 1,
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
+    borderRadius: 16,
+    paddingVertical: 10,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.1)",
+    gap: 4,
+  },
+  moodPillPressed: {
+    transform: [{ scale: 0.96 }],
+  },
+  moodEmoji: {
+    fontSize: 22,
+  },
+  moodLabel: {
+    fontSize: 11.5,
+    color: "#CBD5E1",
+    fontWeight: "600",
   },
   companionRow: {
     flexDirection: "row",
