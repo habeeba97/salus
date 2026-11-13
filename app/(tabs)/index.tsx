@@ -4,12 +4,16 @@ import { View, Pressable, StyleSheet, ScrollView } from "react-native";
 import { AppText } from "../../src/components/AppText";
 import { Screen } from "../../src/components/Screen";
 import { IndianNourishSection } from "../../src/components/IndianNourishSection";
+import { Ambient3DBackground } from "../../src/components/Ambient3DBackground";
 
 export default function HomeScreen() {
   const router = useRouter();
 
   return (
     <Screen style={styles.screenBg}>
+      {/* Full-Screen 3D Ambient Layer */}
+      <Ambient3DBackground />
+
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
         <View style={styles.header}>
           <AppText style={styles.kicker}>SALUS • BIOLOGICAL SANCTUARY</AppText>
@@ -45,7 +49,7 @@ export default function HomeScreen() {
             <AppText style={styles.enterText}>OPEN VOID →</AppText>
           </View>
           <View style={styles.rowAlign}>
-            <View style={[styles.iconOrb, { backgroundColor: "#2E1065", borderColor: "#A855F7" }]}>
+            <View style={[styles.iconOrb, { backgroundColor: "rgba(46, 16, 101, 0.8)", borderColor: "#A855F7" }]}>
               <AppText style={{ fontSize: 26 }}>🌌</AppText>
             </View>
             <View style={{ flex: 1, gap: 2 }}>
@@ -81,8 +85,8 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  screenBg: { backgroundColor: "#090A10" },
-  scroll: { paddingBottom: 40, gap: 16 },
+  screenBg: { backgroundColor: "#070811" },
+  scroll: { paddingBottom: 40, gap: 16, zIndex: 2 },
   header: { paddingTop: 8, paddingHorizontal: 16 },
   kicker: { fontSize: 10, fontWeight: "800", color: "#818CF8", letterSpacing: 1.5 },
   title: { fontSize: 24, fontWeight: "800", color: "#F8FAFC", marginTop: 4 },
@@ -93,27 +97,27 @@ const styles = StyleSheet.create({
   enterText: { fontSize: 11, color: "#C084FC", fontWeight: "800" },
   alchemyCard: {
     marginHorizontal: 16,
-    backgroundColor: "#151028",
+    backgroundColor: "rgba(21, 16, 40, 0.78)",
     borderRadius: 22,
     padding: 18,
     borderWidth: 1.5,
-    borderColor: "#A855F7",
+    borderColor: "rgba(168, 85, 247, 0.65)",
     gap: 12,
   },
   defuserCard: {
     marginHorizontal: 16,
-    backgroundColor: "#0D0E1C",
+    backgroundColor: "rgba(13, 14, 28, 0.78)",
     borderRadius: 22,
     padding: 18,
     borderWidth: 1.5,
-    borderColor: "#4F46E5",
+    borderColor: "rgba(79, 70, 229, 0.65)",
     gap: 12,
   },
   iconOrb: {
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: "#2E1065",
+    backgroundColor: "rgba(46, 16, 101, 0.8)",
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
@@ -124,11 +128,11 @@ const styles = StyleSheet.create({
   grid: { flexDirection: "row", gap: 12, paddingHorizontal: 16 },
   tile: {
     flex: 1,
-    backgroundColor: "#131627",
+    backgroundColor: "rgba(19, 22, 39, 0.78)",
     padding: 16,
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: "#222744",
+    borderColor: "rgba(99, 102, 241, 0.35)",
     gap: 4,
   },
   tileEmoji: { fontSize: 24, marginBottom: 2 },
@@ -136,7 +140,7 @@ const styles = StyleSheet.create({
   tileSub: { fontSize: 11, color: "#94A3B8" },
   safetyCard: {
     marginHorizontal: 16,
-    backgroundColor: "#1A1523",
+    backgroundColor: "rgba(26, 21, 35, 0.82)",
     paddingVertical: 14,
     borderRadius: 14,
     alignItems: "center",
