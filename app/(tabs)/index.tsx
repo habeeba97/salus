@@ -5,6 +5,7 @@ import { AppText } from "../../src/components/AppText";
 import { Screen } from "../../src/components/Screen";
 import { IndianNourishSection } from "../../src/components/IndianNourishSection";
 import { Ambient3DBackground } from "../../src/components/Ambient3DBackground";
+import { StreakAndQuestsSection } from "../../src/components/StreakAndQuestsSection";
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -19,6 +20,9 @@ export default function HomeScreen() {
           <AppText style={styles.kicker}>SALUS • BIOLOGICAL SANCTUARY</AppText>
           <AppText style={styles.title}>Nervous State & Sanctuary</AppText>
         </View>
+
+        {/* Introvert-Style Streak Bar, Bubbi Bubble & Daily Quests */}
+        <StreakAndQuestsSection />
 
         {/* Pan-India Wholesome Nourishment Carousel */}
         <IndianNourishSection />
