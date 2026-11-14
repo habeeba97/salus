@@ -110,7 +110,6 @@ export function SanctuaryProfileSetupCard() {
         </View>
       </Pressable>
 
-      {/* FitOn-Inspired Interactive Sanctuary Goal & Practice Customizer Modal */}
       <Modal visible={modalVisible} animationType="slide" transparent={false}>
         <View style={styles.modalBg}>
           <View style={styles.modalHeader}>
@@ -130,7 +129,6 @@ export function SanctuaryProfileSetupCard() {
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.modalScroll}
           >
-            {/* 1. Primary Goal */}
             <AppText style={styles.sectionLabel}>1. WHAT IS YOUR PRIMARY GOAL?</AppText>
             <View style={styles.stackGroup}>
               {GOALS.map((g) => {
@@ -150,7 +148,6 @@ export function SanctuaryProfileSetupCard() {
               })}
             </View>
 
-            {/* 2. Intensity Level */}
             <AppText style={styles.sectionLabel}>2. CHOOSE YOUR INTENSITY LEVEL</AppText>
             <View style={styles.stackGroup}>
               {LEVELS.map((lvl) => {
@@ -170,7 +167,6 @@ export function SanctuaryProfileSetupCard() {
               })}
             </View>
 
-            {/* 3. Daily Time Window */}
             <AppText style={styles.sectionLabel}>3. DAILY PRACTICE TIME</AppText>
             <View style={styles.pillWrap}>
               {TIME_WINDOWS.map((tw) => {
@@ -189,7 +185,6 @@ export function SanctuaryProfileSetupCard() {
               })}
             </View>
 
-            {/* 4. Favorite Somatic Classes */}
             <AppText style={styles.sectionLabel}>4. FAVORITE SOMATIC PRACTICES</AppText>
             <View style={styles.pillWrap}>
               {PRACTICE_TYPES.map((p) => {
@@ -211,7 +206,6 @@ export function SanctuaryProfileSetupCard() {
               })}
             </View>
 
-            {/* 5. Connected Wearables */}
             <AppText style={styles.sectionLabel}>5. WEARABLES & SENSORS</AppText>
             <View style={styles.pillWrap}>
               {DEVICE_TYPES.map((dev) => {
@@ -244,11 +238,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   summaryCard: {
-    backgroundColor: "rgba(17, 22, 43, 0.78)",
+    backgroundColor: "rgba(17, 22, 43, 0.65)",
     borderRadius: 22,
     padding: 16,
     borderWidth: 1.5,
-    borderColor: "rgba(56, 189, 248, 0.4)",
+    borderColor: "rgba(56, 189, 248, 0.45)",
     gap: 10,
   },
   topRow: {
@@ -284,7 +278,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   metaChip: {
-    backgroundColor: "rgba(255, 255, 255, 0.07)",
+    backgroundColor: "rgba(255, 255, 255, 0.08)",
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 10,

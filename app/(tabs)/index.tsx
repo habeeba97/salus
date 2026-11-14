@@ -15,7 +15,6 @@ export default function HomeScreen() {
 
   return (
     <Screen style={styles.screenBg}>
-      {/* Full-Screen Luminous Somatic Movement & Aurora Background */}
       <Ambient3DBackground />
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
@@ -24,22 +23,12 @@ export default function HomeScreen() {
           <AppText style={styles.title}>Nervous State & Sanctuary</AppText>
         </View>
 
-        {/* FitOn-Inspired Personalized Sanctuary Blueprint */}
         <SanctuaryProfileSetupCard />
-
-        {/* Direct-Play Animated Robota Video Theater */}
         <RobotaAnimatedTheater />
-
-        {/* Introvert-Style Streak Bar, Nervous Check-In, Bubbi & Daily Quests */}
         <StreakAndQuestsSection />
-
-        {/* Master Studio DSP Audio & Smart Ecosystem Connectors */}
         <SanctuaryConnectorsHub />
-
-        {/* Pan-India Wholesome Nourishment Carousel */}
         <IndianNourishSection />
 
-        {/* Alchemy Sanctuary Portal */}
         <Pressable onPress={() => router.push("/alchemy")} style={styles.alchemyCard}>
           <View style={styles.rowBetween}>
             <AppText style={styles.goldTag}>EMOTIONAL TRANSMUTATION & D.O.S.E.</AppText>
@@ -58,7 +47,6 @@ export default function HomeScreen() {
           </View>
         </Pressable>
 
-        {/* Thought Defuser Portal */}
         <Pressable onPress={() => router.push("/journal")} style={styles.defuserCard}>
           <View style={styles.rowBetween}>
             <AppText style={styles.purpleTag}>COGNITIVE EVAPORATION</AppText>
@@ -77,7 +65,6 @@ export default function HomeScreen() {
           </View>
         </Pressable>
 
-        {/* Quick Nav Grid */}
         <View style={styles.grid}>
           <Pressable onPress={() => router.push("/practice")} style={styles.tile}>
             <AppText style={styles.tileEmoji}>🫁</AppText>
@@ -113,7 +100,7 @@ const styles = StyleSheet.create({
   enterText: { fontSize: 11, color: "#C084FC", fontWeight: "800" },
   alchemyCard: {
     marginHorizontal: 16,
-    backgroundColor: "rgba(21, 16, 40, 0.72)",
+    backgroundColor: "rgba(21, 16, 40, 0.65)",
     borderRadius: 22,
     padding: 18,
     borderWidth: 1.5,
@@ -122,7 +109,7 @@ const styles = StyleSheet.create({
   },
   defuserCard: {
     marginHorizontal: 16,
-    backgroundColor: "rgba(13, 14, 28, 0.72)",
+    backgroundColor: "rgba(13, 14, 28, 0.65)",
     borderRadius: 22,
     padding: 18,
     borderWidth: 1.5,
@@ -144,7 +131,7 @@ const styles = StyleSheet.create({
   grid: { flexDirection: "row", gap: 12, paddingHorizontal: 16 },
   tile: {
     flex: 1,
-    backgroundColor: "rgba(19, 22, 39, 0.72)",
+    backgroundColor: "rgba(19, 22, 39, 0.65)",
     padding: 16,
     borderRadius: 18,
     borderWidth: 1,
@@ -156,7 +143,7 @@ const styles = StyleSheet.create({
   tileSub: { fontSize: 11, color: "#94A3B8" },
   safetyCard: {
     marginHorizontal: 16,
-    backgroundColor: "rgba(26, 21, 35, 0.76)",
+    backgroundColor: "rgba(26, 21, 35, 0.72)",
     paddingVertical: 14,
     borderRadius: 14,
     alignItems: "center",

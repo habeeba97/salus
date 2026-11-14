@@ -14,7 +14,6 @@ export function Ambient3DBackground() {
     let animId: number;
     let t = 0;
 
-    // Floating bioluminescent orbs & stardust particles
     const particles = Array.from({ length: 42 }, () => ({
       x: Math.random(),
       y: Math.random(),
@@ -24,7 +23,6 @@ export function Ambient3DBackground() {
       phase: Math.random() * Math.PI * 2,
     }));
 
-    // Helper to draw fluid luminous somatic silhouette performing exercises/yoga
     const drawSomaticFigure = (
       cx: number,
       cy: number,
@@ -39,19 +37,18 @@ export function Ambient3DBackground() {
       ctx.scale(scale, scale);
       ctx.globalAlpha = alpha;
 
-      // Soft aura halo behind the moving body
       const auraGrad = ctx.createRadialGradient(0, -10, 10, 0, -10, 170);
       if (sceneIndex === 0) {
-        auraGrad.addColorStop(0, "rgba(56, 189, 248, 0.24)");
-        auraGrad.addColorStop(0.5, "rgba(129, 140, 248, 0.10)");
+        auraGrad.addColorStop(0, "rgba(56, 189, 248, 0.28)");
+        auraGrad.addColorStop(0.5, "rgba(129, 140, 248, 0.12)");
         auraGrad.addColorStop(1, "transparent");
       } else if (sceneIndex === 1) {
-        auraGrad.addColorStop(0, "rgba(52, 211, 153, 0.24)");
-        auraGrad.addColorStop(0.5, "rgba(16, 185, 129, 0.10)");
+        auraGrad.addColorStop(0, "rgba(52, 211, 153, 0.28)");
+        auraGrad.addColorStop(0.5, "rgba(16, 185, 129, 0.12)");
         auraGrad.addColorStop(1, "transparent");
       } else {
-        auraGrad.addColorStop(0, "rgba(244, 114, 182, 0.24)");
-        auraGrad.addColorStop(0.5, "rgba(192, 132, 252, 0.10)");
+        auraGrad.addColorStop(0, "rgba(244, 114, 182, 0.28)");
+        auraGrad.addColorStop(0.5, "rgba(192, 132, 252, 0.12)");
         auraGrad.addColorStop(1, "transparent");
       }
       ctx.fillStyle = auraGrad;
@@ -61,10 +58,10 @@ export function Ambient3DBackground() {
 
       const strokeCol =
         sceneIndex === 0
-          ? "rgba(125, 211, 252, 0.52)"
+          ? "rgba(125, 211, 252, 0.65)"
           : sceneIndex === 1
-          ? "rgba(110, 231, 183, 0.52)"
-          : "rgba(249, 168, 212, 0.52)";
+          ? "rgba(110, 231, 183, 0.65)"
+          : "rgba(249, 168, 212, 0.65)";
 
       ctx.strokeStyle = strokeCol;
       ctx.fillStyle = strokeCol;
@@ -77,11 +74,9 @@ export function Ambient3DBackground() {
       const sway = Math.sin(poseCycle * 0.5);
 
       if (sceneIndex === 0) {
-        // POSE 1: Sun Salutation & Overhead Vagal Reach
         const armRaise = -1.35 + breath * 0.45;
         const torsoLean = sway * 0.12;
 
-        // Grounded legs (wide warrior/mountain stance)
         ctx.lineWidth = 11;
         ctx.beginPath();
         ctx.moveTo(-6, 26);
@@ -92,7 +87,6 @@ export function Ambient3DBackground() {
         ctx.lineTo(30, 132);
         ctx.stroke();
 
-        // Torso
         ctx.save();
         ctx.rotate(torsoLean);
         ctx.lineWidth = 15;
@@ -101,12 +95,10 @@ export function Ambient3DBackground() {
         ctx.lineTo(0, -34);
         ctx.stroke();
 
-        // Head
         ctx.beginPath();
         ctx.arc(0, -54, 13, 0, Math.PI * 2);
         ctx.fill();
 
-        // Flowing Left & Right Arms reaching skyward with breath
         ctx.lineWidth = 9;
         ctx.beginPath();
         ctx.moveTo(-8, -30);
@@ -126,10 +118,8 @@ export function Ambient3DBackground() {
         ctx.stroke();
         ctx.restore();
       } else if (sceneIndex === 1) {
-        // POSE 2: Warrior II & Tai-Chi Energy Flow
         const lungeShift = sway * 12;
 
-        // Wide Warrior Legs
         ctx.lineWidth = 11;
         ctx.beginPath();
         ctx.moveTo(lungeShift, 26);
@@ -140,19 +130,16 @@ export function Ambient3DBackground() {
         ctx.lineTo(54, 132);
         ctx.stroke();
 
-        // Upright Torso
         ctx.lineWidth = 15;
         ctx.beginPath();
         ctx.moveTo(lungeShift, 24);
         ctx.lineTo(lungeShift * 0.8, -34);
         ctx.stroke();
 
-        // Head
         ctx.beginPath();
         ctx.arc(lungeShift * 0.8, -54, 13, 0, Math.PI * 2);
         ctx.fill();
 
-        // Extended Warrior Arms with Gentle Wave
         ctx.lineWidth = 9;
         ctx.beginPath();
         ctx.moveTo(lungeShift * 0.8 - 8, -28);
@@ -171,8 +158,6 @@ export function Ambient3DBackground() {
         );
         ctx.stroke();
       } else {
-        // POSE 3: Seated Lotus Breath & Heart Expansion
-        // Crossed Lotus Legs
         ctx.lineWidth = 11;
         ctx.beginPath();
         ctx.moveTo(0, 32);
@@ -183,19 +168,16 @@ export function Ambient3DBackground() {
         ctx.quadraticCurveTo(18, 66, -12, 54);
         ctx.stroke();
 
-        // Spine
         ctx.lineWidth = 15;
         ctx.beginPath();
         ctx.moveTo(0, 30);
         ctx.lineTo(0, -28);
         ctx.stroke();
 
-        // Head
         ctx.beginPath();
         ctx.arc(0, -48, 13, 0, Math.PI * 2);
         ctx.fill();
 
-        // Mudra Arms resting gracefully on knees
         ctx.lineWidth = 8.5;
         ctx.beginPath();
         ctx.moveTo(-8, -22);
@@ -204,7 +186,6 @@ export function Ambient3DBackground() {
         ctx.quadraticCurveTo(34, 6, 42, 46 - breath * 4);
         ctx.stroke();
 
-        // Expanding Heart-Center Breath Ring
         const heartRadius = 18 + (breath + 1) * 18;
         ctx.lineWidth = 2;
         ctx.beginPath();
@@ -229,7 +210,6 @@ export function Ambient3DBackground() {
       ctx.scale(dpr, dpr);
       t += 0.018;
 
-      // Deep Cosmic Sanctuary Gradient
       const bgGrad = ctx.createLinearGradient(0, 0, w * 0.4, h);
       bgGrad.addColorStop(0, "#060814");
       bgGrad.addColorStop(0.5, "#0D1229");
@@ -237,7 +217,6 @@ export function Ambient3DBackground() {
       ctx.fillStyle = bgGrad;
       ctx.fillRect(0, 0, w, h);
 
-      // Slow Aurora Ribbon Waves
       for (let band = 0; band < 2; band++) {
         ctx.beginPath();
         const baseY = h * (0.28 + band * 0.34);
@@ -253,22 +232,20 @@ export function Ambient3DBackground() {
         ctx.lineTo(0, h);
         ctx.closePath();
         ctx.fillStyle =
-          band === 0 ? "rgba(56, 189, 248, 0.04)" : "rgba(168, 85, 247, 0.045)";
+          band === 0 ? "rgba(56, 189, 248, 0.05)" : "rgba(168, 85, 247, 0.055)";
         ctx.fill();
       }
 
-      // Cross-fading 3-Scene Somatic Movement Loop (FitOn-style continuous background reel)
-      const cycleDuration = 9.0; // seconds-equivalent in t units
+      const cycleDuration = 9.0;
       const totalCycle = cycleDuration * 3;
       const modT = t % totalCycle;
       const currentScene = Math.floor(modT / cycleDuration);
       const nextScene = (currentScene + 1) % 3;
       const localProgress = (modT % cycleDuration) / cycleDuration;
 
-      // Smooth cross-fade during last 20% of each scene
       const fadeProgress = localProgress > 0.8 ? (localProgress - 0.8) / 0.2 : 0;
-      const currentAlpha = (1 - fadeProgress) * 0.55;
-      const nextAlpha = fadeProgress * 0.55;
+      const currentAlpha = (1 - fadeProgress) * 0.65;
+      const nextAlpha = fadeProgress * 0.65;
 
       const figureScale = Math.min(w / 320, 1.35);
       drawSomaticFigure(w * 0.5, h * 0.44, figureScale, t * 1.4, currentScene, currentAlpha);
@@ -276,7 +253,6 @@ export function Ambient3DBackground() {
         drawSomaticFigure(w * 0.5, h * 0.44, figureScale, t * 1.4, nextScene, nextAlpha);
       }
 
-      // Rising Bioluminescent Particles
       particles.forEach((p) => {
         p.y -= p.vy;
         p.x += p.vx + Math.sin(t + p.phase) * 0.0002;
