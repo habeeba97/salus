@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { View, StyleSheet, Pressable, Platform } from "react-native";
+import { View, StyleSheet, Pressable, Platform, TextInput } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppText } from "./AppText";
 import {
@@ -8,6 +8,7 @@ import {
   BinauralBand,
   NatureScape,
 } from "../services/StudioAudioConnector";
+import { supabaseCloudConnector } from "../services/SupabaseCloudConnector";
 
 const SOLFEGGIO_OPTIONS: { freq: SolfeggioFreq; tag: string }[] = [
   { freq: 432, tag: "432Hz Calm" },
@@ -51,6 +52,30 @@ export function SanctuaryConnectorsHub() {
   const [liveBpm, setLiveBpm] = useState<number | null>(null);
   const [connectorNotice, setConnectorNotice] = useState<string | null>(null);
 
+  // Supabase Cloud Sync State
+  const [syncCode, setSyncCode] = useState<string>("SALUS-...");
+  const [isSyncing, setIsSyncing] = useState<boolean>(false);
+  const [lastSyncedLabel, setLastSyncedLabel] = useState<string>("Not synced yet");
+  const [editingCode, setEditingCode] = useState<boolean>(false);
+  const [codeInput, setCodeInput] = useState<string>("");
+
+  useEffect(() => {
+    const initCloudState = async () => {
+      const code = await supabaseCloudConnector.getOrCreateSyncCode();
+      setSyncCode(code);
+      setCodeInput(code);
+
+      const lastIso = await supabaseCloudConnector.getLastSyncTime();
+      if (lastIso) {
+        const d = new Date(lastIso);
+        setLastSyncedLabel(
+          `Last synced ${d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
+        );
+      }
+    };
+    initCloudState();
+  }, []);
+
   // Live Visualizer Ticker when DSP Audio is active
   useEffect(() => {
     if (!dspActive) return;
@@ -72,7 +97,7 @@ export function SanctuaryConnectorsHub() {
 
   const showToast = (msg: string) => {
     setConnectorNotice(msg);
-    setTimeout(() => setConnectorNotice(null), 4000);
+    setTimeout(() => setConnectorNotice(null), 4500);
   };
 
   // 1. Toggle Studio DSP Audio Engine
@@ -156,7 +181,6 @@ export function SanctuaryConnectorsHub() {
     setHapticsActive(true);
     const triggerPulse = () => {
       if (Platform.OS === "web" && typeof navigator !== "undefined" && "vibrate" in navigator) {
-        // Gentle double-pulse for inhale cue, long soft pulse after 4s for exhale
         navigator.vibrate([80, 120, 80]);
         setTimeout(() => {
           navigator.vibrate([220]);
@@ -219,7 +243,7 @@ export function SanctuaryConnectorsHub() {
         return;
       }
     } catch {
-      // Fallback to calibrated Resting Vagal Pulse simulation if user cancels or device lacks WebBLE
+      // Fallback to resting baseline simulation if cancelled or unsupported
     }
 
     setBleStatus("connected");
@@ -258,7 +282,28 @@ export function SanctuaryConnectorsHub() {
     showToast("Calendar Ritual (.ics) exported! Tap to add daily reminder.");
   };
 
-  // 6. Sanctuary Cloud & JSON Snapshot Backup Connector
+  // 6. Supabase Cloud Sync Handler
+  const handleSupabaseSync = async (customCode?: string) => {
+    setIsSyncing(true);
+    const result = await supabaseCloudConnector.syncNow(customCode);
+    setSyncCode(result.syncCode);
+    setCodeInput(result.syncCode);
+    setEditingCode(false);
+    setIsSyncing(false);
+
+    if (result.ok) {
+      const d = new Date(result.timestamp);
+      setLastSyncedLabel(
+        `${result.mode === "supabase" ? "Cloud synced" : "Local snapshot"} ${d.toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        })}`
+      );
+    }
+    showToast(result.message);
+  };
+
+  // 7. JSON Snapshot Export
   const exportSanctuarySnapshot = async () => {
     try {
       const keys = await AsyncStorage.getAllKeys();
@@ -266,6 +311,7 @@ export function SanctuaryConnectorsHub() {
       const entries = await AsyncStorage.multiGet(salusKeys);
       const payload = {
         app: "Salus Biological Sanctuary",
+        syncCode,
         exportedAt: new Date().toISOString(),
         records: Object.fromEntries(entries),
       };
@@ -276,17 +322,22 @@ export function SanctuaryConnectorsHub() {
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = url;
-        link.setAttribute("download", `salus-sanctuary-backup-${new Date().toISOString().split("T")[0]}.json`);
+        link.setAttribute(
+          "download",
+          `salus-sanctuary-backup-${new Date().toISOString().split("T")[0]}.json`
+        );
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
       }
-      showToast(`Sanctuary Snapshot saved (${salusKeys.length} records backed up)`);
+      showToast(`JSON Snapshot exported (${salusKeys.length} records)`);
     } catch {
       showToast("Sanctuary state synced locally");
     }
   };
+
+  const cloudConfigured = supabaseCloudConnector.isConfigured();
 
   return (
     <View style={styles.wrapper}>
@@ -408,9 +459,8 @@ export function SanctuaryConnectorsHub() {
         </View>
       </View>
 
-      {/* 2. Hardware, Sensor & Cloud Connectors Grid */}
+      {/* 2. Hardware & Sensor Connectors Grid */}
       <View style={styles.connectorsGrid}>
-        {/* Web Bluetooth Biometric Sensor */}
         <Pressable
           onPress={connectBiometricSensor}
           style={[
@@ -433,7 +483,6 @@ export function SanctuaryConnectorsHub() {
           <AppText style={styles.tileDesc}>Smartwatch & HR sensor bridge</AppText>
         </Pressable>
 
-        {/* Screen Wake-Lock Connector */}
         <Pressable
           onPress={toggleWakeLock}
           style={[styles.connectorTile, wakeLockActive && styles.connectorTileActive]}
@@ -453,7 +502,6 @@ export function SanctuaryConnectorsHub() {
           <AppText style={styles.tileDesc}>Keep display on in meditation</AppText>
         </Pressable>
 
-        {/* Somatic Haptics Connector */}
         <Pressable
           onPress={toggleHapticPacer}
           style={[styles.connectorTile, hapticsActive && styles.connectorTileActive]}
@@ -473,7 +521,6 @@ export function SanctuaryConnectorsHub() {
           <AppText style={styles.tileDesc}>Eyes-closed vibration breath</AppText>
         </Pressable>
 
-        {/* Google Calendar .ICS Sync */}
         <Pressable onPress={exportCalendarRitual} style={styles.connectorTile}>
           <View style={styles.tileHeader}>
             <AppText style={styles.tileIcon}>📅</AppText>
@@ -484,18 +531,78 @@ export function SanctuaryConnectorsHub() {
         </Pressable>
       </View>
 
-      {/* 3. Sanctuary Cloud & JSON Data Backup Bar */}
-      <Pressable onPress={exportSanctuarySnapshot} style={styles.backupBar}>
-        <View style={{ flex: 1 }}>
-          <AppText style={styles.backupTitle}>☁️ Sanctuary Data & Cloud Portability</AppText>
-          <AppText style={styles.backupSub}>
-            Download JSON backup of your streaks, mood logs & Calm XP
-          </AppText>
+      {/* 3. Supabase Cloud Sync & JSON Portability Card */}
+      <View style={styles.cloudCard}>
+        <View style={styles.cloudTopRow}>
+          <View style={{ flex: 1 }}>
+            <View style={styles.cloudBadgeRow}>
+              <AppText style={styles.backupTitle}>☁️ Supabase Cloud Sync</AppText>
+              <View
+                style={[
+                  styles.cloudStatusPill,
+                  {
+                    backgroundColor: cloudConfigured
+                      ? "rgba(16, 185, 129, 0.18)"
+                      : "rgba(251, 191, 36, 0.16)",
+                  },
+                ]}
+              >
+                <AppText
+                  style={[
+                    styles.cloudStatusText,
+                    { color: cloudConfigured ? "#34D399" : "#FBBF24" },
+                  ]}
+                >
+                  {cloudConfigured ? "CONNECTED" : "ENV READY"}
+                </AppText>
+              </View>
+            </View>
+            <AppText style={styles.backupSub}>
+              Sync ID: <AppText style={styles.syncCodeHighlight}>{syncCode}</AppText> •{" "}
+              {lastSyncedLabel}
+            </AppText>
+          </View>
+
+          <Pressable
+            onPress={() => handleSupabaseSync()}
+            disabled={isSyncing}
+            style={styles.syncNowBtn}
+          >
+            <AppText style={styles.syncNowText}>
+              {isSyncing ? "Syncing..." : "Sync Cloud"}
+            </AppText>
+          </Pressable>
         </View>
-        <View style={styles.exportPill}>
-          <AppText style={styles.exportPillText}>Export JSON</AppText>
-        </View>
-      </Pressable>
+
+        {editingCode ? (
+          <View style={styles.codeEditRow}>
+            <TextInput
+              value={codeInput}
+              onChangeText={setCodeInput}
+              placeholder="Enter SALUS-XXXXXX"
+              placeholderTextColor="#64748B"
+              autoCapitalize="characters"
+              style={styles.codeInput}
+            />
+            <Pressable
+              onPress={() => handleSupabaseSync(codeInput)}
+              style={styles.applyCodeBtn}
+            >
+              <AppText style={styles.applyCodeText}>Link & Pull</AppText>
+            </Pressable>
+          </View>
+        ) : (
+          <View style={styles.cloudFooterRow}>
+            <Pressable onPress={() => setEditingCode(true)} style={styles.linkDeviceBtn}>
+              <AppText style={styles.linkDeviceText}>🔗 Link Another Device ID</AppText>
+            </Pressable>
+
+            <Pressable onPress={exportSanctuarySnapshot} style={styles.exportPill}>
+              <AppText style={styles.exportPillText}>Export JSON</AppText>
+            </Pressable>
+          </View>
+        )}
+      </View>
     </View>
   );
 }
@@ -688,37 +795,114 @@ const styles = StyleSheet.create({
     color: "#94A3B8",
     lineHeight: 14,
   },
-  backupBar: {
+  cloudCard: {
+    backgroundColor: "rgba(21, 18, 43, 0.88)",
+    borderRadius: 20,
+    padding: 15,
+    borderWidth: 1.5,
+    borderColor: "rgba(168, 85, 247, 0.45)",
+    gap: 12,
+  },
+  cloudTopRow: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(21, 18, 43, 0.86)",
-    borderRadius: 18,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: "rgba(168, 85, 247, 0.4)",
     gap: 10,
   },
+  cloudBadgeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  cloudStatusPill: {
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  cloudStatusText: {
+    fontSize: 8.5,
+    fontWeight: "900",
+    letterSpacing: 0.6,
+  },
   backupTitle: {
-    fontSize: 13,
+    fontSize: 13.5,
     fontWeight: "800",
     color: "#F8FAFC",
   },
   backupSub: {
     fontSize: 10.5,
     color: "#94A3B8",
-    marginTop: 2,
+    marginTop: 3,
+  },
+  syncCodeHighlight: {
+    color: "#38BDF8",
+    fontWeight: "800",
+  },
+  syncNowBtn: {
+    backgroundColor: "#10B981",
+    paddingHorizontal: 13,
+    paddingVertical: 9,
+    borderRadius: 13,
+  },
+  syncNowText: {
+    color: "#022C22",
+    fontSize: 11.5,
+    fontWeight: "900",
+  },
+  cloudFooterRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: "rgba(255, 255, 255, 0.08)",
+  },
+  linkDeviceBtn: {
+    paddingVertical: 4,
+  },
+  linkDeviceText: {
+    color: "#A5B4FC",
+    fontSize: 11,
+    fontWeight: "700",
   },
   exportPill: {
     backgroundColor: "rgba(168, 85, 247, 0.22)",
     paddingHorizontal: 11,
-    paddingVertical: 7,
-    borderRadius: 12,
+    paddingVertical: 6,
+    borderRadius: 10,
     borderWidth: 1,
     borderColor: "#C084FC",
   },
   exportPillText: {
     color: "#E9D5FF",
-    fontSize: 11,
+    fontSize: 10.5,
+    fontWeight: "800",
+  },
+  codeEditRow: {
+    flexDirection: "row",
+    gap: 8,
+    paddingTop: 6,
+  },
+  codeInput: {
+    flex: 1,
+    backgroundColor: "rgba(7, 10, 22, 0.85)",
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    color: "#FFFFFF",
+    fontSize: 12,
+    fontWeight: "700",
+    borderWidth: 1,
+    borderColor: "#818CF8",
+  },
+  applyCodeBtn: {
+    backgroundColor: "#818CF8",
+    paddingHorizontal: 14,
+    borderRadius: 10,
+    justifyContent: "center",
+  },
+  applyCodeText: {
+    color: "#090D16",
+    fontSize: 11.5,
     fontWeight: "800",
   },
 });
