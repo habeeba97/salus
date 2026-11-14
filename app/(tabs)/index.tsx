@@ -6,6 +6,7 @@ import { Screen } from "../../src/components/Screen";
 import { IndianNourishSection } from "../../src/components/IndianNourishSection";
 import { Ambient3DBackground } from "../../src/components/Ambient3DBackground";
 import { StreakAndQuestsSection } from "../../src/components/StreakAndQuestsSection";
+import { RobotaAnimatedTheater } from "../../src/components/RobotaAnimatedTheater";
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -21,7 +22,10 @@ export default function HomeScreen() {
           <AppText style={styles.title}>Nervous State & Sanctuary</AppText>
         </View>
 
-        {/* Introvert-Style Streak Bar, Bubbi Bubble & Daily Quests */}
+        {/* Direct-Play Animated Robota Video Theater */}
+        <RobotaAnimatedTheater />
+
+        {/* Introvert-Style Streak Bar, Nervous Check-In, Bubbi & Daily Quests */}
         <StreakAndQuestsSection />
 
         {/* Pan-India Wholesome Nourishment Carousel */}
