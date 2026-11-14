@@ -7,6 +7,7 @@ import { IndianNourishSection } from "../../src/components/IndianNourishSection"
 import { Ambient3DBackground } from "../../src/components/Ambient3DBackground";
 import { StreakAndQuestsSection } from "../../src/components/StreakAndQuestsSection";
 import { RobotaAnimatedTheater } from "../../src/components/RobotaAnimatedTheater";
+import { SanctuaryConnectorsHub } from "../../src/components/SanctuaryConnectorsHub";
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -27,6 +28,9 @@ export default function HomeScreen() {
 
         {/* Introvert-Style Streak Bar, Nervous Check-In, Bubbi & Daily Quests */}
         <StreakAndQuestsSection />
+
+        {/* Master Studio DSP Audio & Smart Ecosystem Connectors */}
+        <SanctuaryConnectorsHub />
 
         {/* Pan-India Wholesome Nourishment Carousel */}
         <IndianNourishSection />
