@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import React from "react";
+import React, { useState } from "react";
 import { View, Pressable, StyleSheet, ScrollView } from "react-native";
 import { AppText } from "../../src/components/AppText";
 import { Screen } from "../../src/components/Screen";
@@ -12,87 +12,128 @@ import { SanctuaryProfileSetupCard } from "../../src/components/SanctuaryProfile
 
 export default function HomeScreen() {
   const router = useRouter();
+  const [clearBgMode, setClearBgMode] = useState<boolean>(false);
 
   return (
     <Screen style={styles.screenBg}>
-      <Ambient3DBackground />
+      {/* Full-Screen Cinematic Volumetric Movement Background */}
+      <Ambient3DBackground clearView={clearBgMode} />
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
-        <View style={styles.header}>
+      {/* Top Header with Quick Background Cinema Toggle */}
+      <View style={styles.topStickyHeader}>
+        <View>
           <AppText style={styles.kicker}>SALUS • BIOLOGICAL SANCTUARY</AppText>
           <AppText style={styles.title}>Nervous State & Sanctuary</AppText>
         </View>
 
-        <SanctuaryProfileSetupCard />
-        <RobotaAnimatedTheater />
-        <StreakAndQuestsSection />
-        <SanctuaryConnectorsHub />
-        <IndianNourishSection />
-
-        <Pressable onPress={() => router.push("/alchemy")} style={styles.alchemyCard}>
-          <View style={styles.rowBetween}>
-            <AppText style={styles.goldTag}>EMOTIONAL TRANSMUTATION & D.O.S.E.</AppText>
-            <AppText style={styles.enterText}>ENTER →</AppText>
-          </View>
-          <View style={styles.rowAlign}>
-            <View style={styles.iconOrb}>
-              <AppText style={{ fontSize: 26 }}>🌟</AppText>
-            </View>
-            <View style={{ flex: 1, gap: 2 }}>
-              <AppText style={styles.cardTitle}>The Alchemy Sanctuary</AppText>
-              <AppText style={styles.cardSub}>
-                Turn grief into power, ignite oxytocin & dopamine, and reclaim inner strength.
-              </AppText>
-            </View>
-          </View>
+        <Pressable
+          onPress={() => setClearBgMode((v) => !v)}
+          style={[styles.bgToggleBtn, clearBgMode && styles.bgToggleBtnActive]}
+        >
+          <AppText style={styles.bgToggleText}>
+            {clearBgMode ? "✨ Show Cards" : "👁️ View BG"}
+          </AppText>
         </Pressable>
+      </View>
 
-        <Pressable onPress={() => router.push("/journal")} style={styles.defuserCard}>
-          <View style={styles.rowBetween}>
-            <AppText style={styles.purpleTag}>COGNITIVE EVAPORATION</AppText>
-            <AppText style={styles.enterText}>OPEN VOID →</AppText>
-          </View>
-          <View style={styles.rowAlign}>
-            <View style={[styles.iconOrb, { backgroundColor: "rgba(46, 16, 101, 0.8)", borderColor: "#A855F7" }]}>
-              <AppText style={{ fontSize: 26 }}>🌌</AppText>
-            </View>
-            <View style={{ flex: 1, gap: 2 }}>
-              <AppText style={styles.cardTitle}>Thought Defuser Singularity</AppText>
-              <AppText style={styles.cardSub}>
-                Full-screen gravitational collapse & binaural stardust dispersal.
-              </AppText>
-            </View>
-          </View>
-        </Pressable>
+      {!clearBgMode && (
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
+          <SanctuaryProfileSetupCard />
+          <RobotaAnimatedTheater />
+          <StreakAndQuestsSection />
+          <SanctuaryConnectorsHub />
+          <IndianNourishSection />
 
-        <View style={styles.grid}>
-          <Pressable onPress={() => router.push("/practice")} style={styles.tile}>
-            <AppText style={styles.tileEmoji}>🫁</AppText>
-            <AppText style={styles.tileTitle}>Somatic Lab</AppText>
-            <AppText style={styles.tileSub}>Breath & Frequencies</AppText>
+          <Pressable onPress={() => router.push("/alchemy")} style={styles.alchemyCard}>
+            <View style={styles.rowBetween}>
+              <AppText style={styles.goldTag}>EMOTIONAL TRANSMUTATION & D.O.S.E.</AppText>
+              <AppText style={styles.enterText}>ENTER →</AppText>
+            </View>
+            <View style={styles.rowAlign}>
+              <View style={styles.iconOrb}>
+                <AppText style={{ fontSize: 26 }}>🌟</AppText>
+              </View>
+              <View style={{ flex: 1, gap: 2 }}>
+                <AppText style={styles.cardTitle}>The Alchemy Sanctuary</AppText>
+                <AppText style={styles.cardSub}>
+                  Turn grief into power, ignite oxytocin & dopamine, and reclaim inner strength.
+                </AppText>
+              </View>
+            </View>
           </Pressable>
 
-          <Pressable onPress={() => router.push("/chat")} style={styles.tile}>
-            <AppText style={styles.tileEmoji}>✦</AppText>
-            <AppText style={styles.tileTitle}>Bubbi AI</AppText>
-            <AppText style={styles.tileSub}>Clinical Somatic Coach</AppText>
+          <Pressable onPress={() => router.push("/journal")} style={styles.defuserCard}>
+            <View style={styles.rowBetween}>
+              <AppText style={styles.purpleTag}>COGNITIVE EVAPORATION</AppText>
+              <AppText style={styles.enterText}>OPEN VOID →</AppText>
+            </View>
+            <View style={styles.rowAlign}>
+              <View style={[styles.iconOrb, { backgroundColor: "rgba(46, 16, 101, 0.7)", borderColor: "#A855F7" }]}>
+                <AppText style={{ fontSize: 26 }}>🌌</AppText>
+              </View>
+              <View style={{ flex: 1, gap: 2 }}>
+                <AppText style={styles.cardTitle}>Thought Defuser Singularity</AppText>
+                <AppText style={styles.cardSub}>
+                  Full-screen gravitational collapse & binaural stardust dispersal.
+                </AppText>
+              </View>
+            </View>
           </Pressable>
-        </View>
 
-        <Pressable onPress={() => router.push("/help")} style={styles.safetyCard}>
-          <AppText style={styles.safetyTitle}>Clinical Safety Shield & Crisis SOS →</AppText>
-        </Pressable>
-      </ScrollView>
+          <View style={styles.grid}>
+            <Pressable onPress={() => router.push("/practice")} style={styles.tile}>
+              <AppText style={styles.tileEmoji}>🫁</AppText>
+              <AppText style={styles.tileTitle}>Somatic Lab</AppText>
+              <AppText style={styles.tileSub}>Breath & Frequencies</AppText>
+            </Pressable>
+
+            <Pressable onPress={() => router.push("/chat")} style={styles.tile}>
+              <AppText style={styles.tileEmoji}>✦</AppText>
+              <AppText style={styles.tileTitle}>Bubbi AI</AppText>
+              <AppText style={styles.tileSub}>Clinical Somatic Coach</AppText>
+            </Pressable>
+          </View>
+
+          <Pressable onPress={() => router.push("/help")} style={styles.safetyCard}>
+            <AppText style={styles.safetyTitle}>Clinical Safety Shield & Crisis SOS →</AppText>
+          </Pressable>
+        </ScrollView>
+      )}
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
   screenBg: { backgroundColor: "transparent" },
+  topStickyHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingTop: 8,
+    paddingBottom: 8,
+    paddingHorizontal: 16,
+    zIndex: 5,
+  },
+  bgToggleBtn: {
+    backgroundColor: "rgba(15, 23, 42, 0.72)",
+    paddingHorizontal: 11,
+    paddingVertical: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "rgba(251, 191, 36, 0.45)",
+  },
+  bgToggleBtnActive: {
+    backgroundColor: "rgba(251, 191, 36, 0.25)",
+    borderColor: "#FBBF24",
+  },
+  bgToggleText: {
+    color: "#FDE68A",
+    fontSize: 11,
+    fontWeight: "800",
+  },
   scroll: { paddingBottom: 40, gap: 16, zIndex: 2 },
-  header: { paddingTop: 8, paddingHorizontal: 16 },
   kicker: { fontSize: 10, fontWeight: "800", color: "#818CF8", letterSpacing: 1.5 },
-  title: { fontSize: 24, fontWeight: "800", color: "#F8FAFC", marginTop: 4 },
+  title: { fontSize: 22, fontWeight: "800", color: "#F8FAFC", marginTop: 2 },
   rowBetween: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   rowAlign: { flexDirection: "row", alignItems: "center", gap: 14 },
   goldTag: { fontSize: 9, fontWeight: "900", color: "#FBBF24", letterSpacing: 1.2 },
@@ -100,27 +141,27 @@ const styles = StyleSheet.create({
   enterText: { fontSize: 11, color: "#C084FC", fontWeight: "800" },
   alchemyCard: {
     marginHorizontal: 16,
-    backgroundColor: "rgba(21, 16, 40, 0.65)",
+    backgroundColor: "rgba(21, 16, 40, 0.48)",
     borderRadius: 22,
     padding: 18,
     borderWidth: 1.5,
-    borderColor: "rgba(168, 85, 247, 0.65)",
+    borderColor: "rgba(168, 85, 247, 0.55)",
     gap: 12,
   },
   defuserCard: {
     marginHorizontal: 16,
-    backgroundColor: "rgba(13, 14, 28, 0.65)",
+    backgroundColor: "rgba(13, 14, 28, 0.48)",
     borderRadius: 22,
     padding: 18,
     borderWidth: 1.5,
-    borderColor: "rgba(79, 70, 229, 0.65)",
+    borderColor: "rgba(79, 70, 229, 0.55)",
     gap: 12,
   },
   iconOrb: {
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: "rgba(46, 16, 101, 0.8)",
+    backgroundColor: "rgba(46, 16, 101, 0.72)",
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
@@ -131,7 +172,7 @@ const styles = StyleSheet.create({
   grid: { flexDirection: "row", gap: 12, paddingHorizontal: 16 },
   tile: {
     flex: 1,
-    backgroundColor: "rgba(19, 22, 39, 0.65)",
+    backgroundColor: "rgba(19, 22, 39, 0.48)",
     padding: 16,
     borderRadius: 18,
     borderWidth: 1,
@@ -143,7 +184,7 @@ const styles = StyleSheet.create({
   tileSub: { fontSize: 11, color: "#94A3B8" },
   safetyCard: {
     marginHorizontal: 16,
-    backgroundColor: "rgba(26, 21, 35, 0.72)",
+    backgroundColor: "rgba(26, 21, 35, 0.55)",
     paddingVertical: 14,
     borderRadius: 14,
     alignItems: "center",
