@@ -1,191 +1,318 @@
 import React, { useEffect, useRef } from "react";
-import { View, StyleSheet, Animated, Dimensions, Easing } from "react-native";
-
-const { width, height } = Dimensions.get("window");
+import { View, StyleSheet, Platform } from "react-native";
 
 export function Ambient3DBackground() {
-  const rotateOuter = useRef(new Animated.Value(0)).current;
-  const rotateInner = useRef(new Animated.Value(0)).current;
-  const orbFloat1 = useRef(new Animated.Value(0)).current;
-  const orbFloat2 = useRef(new Animated.Value(0)).current;
-  const pulseDepth = useRef(new Animated.Value(0.95)).current;
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
-    // 1. Slow 3D Gyroscope Ring Rotation (Outer)
-    Animated.loop(
-      Animated.timing(rotateOuter, {
-        toValue: 1,
-        duration: 24000,
-        easing: Easing.linear,
-        useNativeDriver: true,
-      })
-    ).start();
+    if (Platform.OS !== "web") return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
 
-    // 2. Counter-Rotating Inner 3D Orbit
-    Animated.loop(
-      Animated.timing(rotateInner, {
-        toValue: 1,
-        duration: 18000,
-        easing: Easing.linear,
-        useNativeDriver: true,
-      })
-    ).start();
+    let animId: number;
+    let t = 0;
 
-    // 3. Floating 3D Luminous Orbs (Z-depth illusion)
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(orbFloat1, {
-          toValue: 1,
-          duration: 4500,
-          easing: Easing.inOut(Easing.sin),
-          useNativeDriver: true,
-        }),
-        Animated.timing(orbFloat1, {
-          toValue: 0,
-          duration: 4500,
-          easing: Easing.inOut(Easing.sin),
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
+    // Floating bioluminescent orbs & stardust particles
+    const particles = Array.from({ length: 42 }, () => ({
+      x: Math.random(),
+      y: Math.random(),
+      r: 1 + Math.random() * 2.4,
+      vy: 0.0004 + Math.random() * 0.0008,
+      vx: (Math.random() - 0.5) * 0.0003,
+      phase: Math.random() * Math.PI * 2,
+    }));
 
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(orbFloat2, {
-          toValue: 1,
-          duration: 5500,
-          easing: Easing.inOut(Easing.sin),
-          useNativeDriver: true,
-        }),
-        Animated.timing(orbFloat2, {
-          toValue: 0,
-          duration: 5500,
-          easing: Easing.inOut(Easing.sin),
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
+    // Helper to draw fluid luminous somatic silhouette performing exercises/yoga
+    const drawSomaticFigure = (
+      cx: number,
+      cy: number,
+      scale: number,
+      poseCycle: number,
+      sceneIndex: number,
+      alpha: number
+    ) => {
+      if (alpha <= 0.01) return;
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.scale(scale, scale);
+      ctx.globalAlpha = alpha;
 
-    // 4. Deep Core Breathing Scale
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseDepth, {
-          toValue: 1.12,
-          duration: 3800,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulseDepth, {
-          toValue: 0.95,
-          duration: 3800,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
+      // Soft aura halo behind the moving body
+      const auraGrad = ctx.createRadialGradient(0, -10, 10, 0, -10, 170);
+      if (sceneIndex === 0) {
+        auraGrad.addColorStop(0, "rgba(56, 189, 248, 0.24)");
+        auraGrad.addColorStop(0.5, "rgba(129, 140, 248, 0.10)");
+        auraGrad.addColorStop(1, "transparent");
+      } else if (sceneIndex === 1) {
+        auraGrad.addColorStop(0, "rgba(52, 211, 153, 0.24)");
+        auraGrad.addColorStop(0.5, "rgba(16, 185, 129, 0.10)");
+        auraGrad.addColorStop(1, "transparent");
+      } else {
+        auraGrad.addColorStop(0, "rgba(244, 114, 182, 0.24)");
+        auraGrad.addColorStop(0.5, "rgba(192, 132, 252, 0.10)");
+        auraGrad.addColorStop(1, "transparent");
+      }
+      ctx.fillStyle = auraGrad;
+      ctx.beginPath();
+      ctx.arc(0, -10, 170, 0, Math.PI * 2);
+      ctx.fill();
+
+      const strokeCol =
+        sceneIndex === 0
+          ? "rgba(125, 211, 252, 0.52)"
+          : sceneIndex === 1
+          ? "rgba(110, 231, 183, 0.52)"
+          : "rgba(249, 168, 212, 0.52)";
+
+      ctx.strokeStyle = strokeCol;
+      ctx.fillStyle = strokeCol;
+      ctx.shadowColor = strokeCol;
+      ctx.shadowBlur = 18;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+
+      const breath = Math.sin(poseCycle);
+      const sway = Math.sin(poseCycle * 0.5);
+
+      if (sceneIndex === 0) {
+        // POSE 1: Sun Salutation & Overhead Vagal Reach
+        const armRaise = -1.35 + breath * 0.45;
+        const torsoLean = sway * 0.12;
+
+        // Grounded legs (wide warrior/mountain stance)
+        ctx.lineWidth = 11;
+        ctx.beginPath();
+        ctx.moveTo(-6, 26);
+        ctx.lineTo(-26, 82);
+        ctx.lineTo(-30, 132);
+        ctx.moveTo(6, 26);
+        ctx.lineTo(26, 82);
+        ctx.lineTo(30, 132);
+        ctx.stroke();
+
+        // Torso
+        ctx.save();
+        ctx.rotate(torsoLean);
+        ctx.lineWidth = 15;
+        ctx.beginPath();
+        ctx.moveTo(0, 24);
+        ctx.lineTo(0, -34);
+        ctx.stroke();
+
+        // Head
+        ctx.beginPath();
+        ctx.arc(0, -54, 13, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Flowing Left & Right Arms reaching skyward with breath
+        ctx.lineWidth = 9;
+        ctx.beginPath();
+        ctx.moveTo(-8, -30);
+        ctx.quadraticCurveTo(
+          -34,
+          -30 + Math.sin(armRaise) * 35,
+          -18 + Math.cos(armRaise) * 16,
+          -86 - breath * 14
+        );
+        ctx.moveTo(8, -30);
+        ctx.quadraticCurveTo(
+          34,
+          -30 + Math.sin(armRaise) * 35,
+          18 - Math.cos(armRaise) * 16,
+          -86 - breath * 14
+        );
+        ctx.stroke();
+        ctx.restore();
+      } else if (sceneIndex === 1) {
+        // POSE 2: Warrior II & Tai-Chi Energy Flow
+        const lungeShift = sway * 12;
+
+        // Wide Warrior Legs
+        ctx.lineWidth = 11;
+        ctx.beginPath();
+        ctx.moveTo(lungeShift, 26);
+        ctx.lineTo(-42 + lungeShift * 0.5, 76);
+        ctx.lineTo(-48, 132);
+        ctx.moveTo(lungeShift, 26);
+        ctx.lineTo(38 + lungeShift * 0.5, 80);
+        ctx.lineTo(54, 132);
+        ctx.stroke();
+
+        // Upright Torso
+        ctx.lineWidth = 15;
+        ctx.beginPath();
+        ctx.moveTo(lungeShift, 24);
+        ctx.lineTo(lungeShift * 0.8, -34);
+        ctx.stroke();
+
+        // Head
+        ctx.beginPath();
+        ctx.arc(lungeShift * 0.8, -54, 13, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Extended Warrior Arms with Gentle Wave
+        ctx.lineWidth = 9;
+        ctx.beginPath();
+        ctx.moveTo(lungeShift * 0.8 - 8, -28);
+        ctx.quadraticCurveTo(
+          lungeShift - 44,
+          -34 + breath * 12,
+          lungeShift - 82,
+          -26 - breath * 10
+        );
+        ctx.moveTo(lungeShift * 0.8 + 8, -28);
+        ctx.quadraticCurveTo(
+          lungeShift + 44,
+          -34 - breath * 12,
+          lungeShift + 82,
+          -26 + breath * 10
+        );
+        ctx.stroke();
+      } else {
+        // POSE 3: Seated Lotus Breath & Heart Expansion
+        // Crossed Lotus Legs
+        ctx.lineWidth = 11;
+        ctx.beginPath();
+        ctx.moveTo(0, 32);
+        ctx.quadraticCurveTo(-52, 34, -46, 56);
+        ctx.quadraticCurveTo(-18, 66, 12, 54);
+        ctx.moveTo(0, 32);
+        ctx.quadraticCurveTo(52, 34, 46, 56);
+        ctx.quadraticCurveTo(18, 66, -12, 54);
+        ctx.stroke();
+
+        // Spine
+        ctx.lineWidth = 15;
+        ctx.beginPath();
+        ctx.moveTo(0, 30);
+        ctx.lineTo(0, -28);
+        ctx.stroke();
+
+        // Head
+        ctx.beginPath();
+        ctx.arc(0, -48, 13, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Mudra Arms resting gracefully on knees
+        ctx.lineWidth = 8.5;
+        ctx.beginPath();
+        ctx.moveTo(-8, -22);
+        ctx.quadraticCurveTo(-34, 6, -42, 46 - breath * 4);
+        ctx.moveTo(8, -22);
+        ctx.quadraticCurveTo(34, 6, 42, 46 - breath * 4);
+        ctx.stroke();
+
+        // Expanding Heart-Center Breath Ring
+        const heartRadius = 18 + (breath + 1) * 18;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(0, -6, heartRadius, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      ctx.restore();
+    };
+
+    const render = () => {
+      const dpr = typeof window !== "undefined" ? Math.min(window.devicePixelRatio || 1, 2) : 1;
+      const w = typeof window !== "undefined" ? window.innerWidth : 390;
+      const h = typeof window !== "undefined" ? window.innerHeight : 844;
+
+      if (canvas.width !== Math.floor(w * dpr) || canvas.height !== Math.floor(h * dpr)) {
+        canvas.width = Math.floor(w * dpr);
+        canvas.height = Math.floor(h * dpr);
+      }
+
+      ctx.save();
+      ctx.scale(dpr, dpr);
+      t += 0.018;
+
+      // Deep Cosmic Sanctuary Gradient
+      const bgGrad = ctx.createLinearGradient(0, 0, w * 0.4, h);
+      bgGrad.addColorStop(0, "#060814");
+      bgGrad.addColorStop(0.5, "#0D1229");
+      bgGrad.addColorStop(1, "#070913");
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, w, h);
+
+      // Slow Aurora Ribbon Waves
+      for (let band = 0; band < 2; band++) {
+        ctx.beginPath();
+        const baseY = h * (0.28 + band * 0.34);
+        ctx.moveTo(0, baseY);
+        for (let x = 0; x <= w; x += 24) {
+          const y =
+            baseY +
+            Math.sin(x * 0.006 + t * 0.7 + band * 2) * 38 +
+            Math.cos(x * 0.012 - t * 0.4) * 20;
+          ctx.lineTo(x, y);
+        }
+        ctx.lineTo(w, h);
+        ctx.lineTo(0, h);
+        ctx.closePath();
+        ctx.fillStyle =
+          band === 0 ? "rgba(56, 189, 248, 0.04)" : "rgba(168, 85, 247, 0.045)";
+        ctx.fill();
+      }
+
+      // Cross-fading 3-Scene Somatic Movement Loop (FitOn-style continuous background reel)
+      const cycleDuration = 9.0; // seconds-equivalent in t units
+      const totalCycle = cycleDuration * 3;
+      const modT = t % totalCycle;
+      const currentScene = Math.floor(modT / cycleDuration);
+      const nextScene = (currentScene + 1) % 3;
+      const localProgress = (modT % cycleDuration) / cycleDuration;
+
+      // Smooth cross-fade during last 20% of each scene
+      const fadeProgress = localProgress > 0.8 ? (localProgress - 0.8) / 0.2 : 0;
+      const currentAlpha = (1 - fadeProgress) * 0.55;
+      const nextAlpha = fadeProgress * 0.55;
+
+      const figureScale = Math.min(w / 320, 1.35);
+      drawSomaticFigure(w * 0.5, h * 0.44, figureScale, t * 1.4, currentScene, currentAlpha);
+      if (fadeProgress > 0) {
+        drawSomaticFigure(w * 0.5, h * 0.44, figureScale, t * 1.4, nextScene, nextAlpha);
+      }
+
+      // Rising Bioluminescent Particles
+      particles.forEach((p) => {
+        p.y -= p.vy;
+        p.x += p.vx + Math.sin(t + p.phase) * 0.0002;
+        if (p.y < -0.02) p.y = 1.02;
+        if (p.x < 0) p.x = 1;
+        if (p.x > 1) p.x = 0;
+
+        const alpha = 0.2 + 0.5 * Math.abs(Math.sin(t + p.phase));
+        ctx.fillStyle = `rgba(165, 180, 252, ${alpha.toFixed(2)})`;
+        ctx.beginPath();
+        ctx.arc(p.x * w, p.y * h, p.r, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      ctx.restore();
+      animId = requestAnimationFrame(render);
+    };
+
+    animId = requestAnimationFrame(render);
+    return () => cancelAnimationFrame(animId);
   }, []);
 
-  const spinOuter = rotateOuter.interpolate({
-    inputRange: [0, 1],
-    outputRange: ["0deg", "360deg"],
-  });
-
-  const spinInner = rotateInner.interpolate({
-    inputRange: [0, 1],
-    outputRange: ["360deg", "0deg"],
-  });
-
-  const translateY1 = orbFloat1.interpolate({
-    inputRange: [0, 1],
-    outputRange: [-18, 22],
-  });
-
-  const scale1 = orbFloat1.interpolate({
-    inputRange: [0, 0.5, 1],
-    outputRange: [0.9, 1.15, 0.9],
-  });
-
-  const translateY2 = orbFloat2.interpolate({
-    inputRange: [0, 1],
-    outputRange: [20, -24],
-  });
+  if (Platform.OS !== "web") {
+    return <View style={styles.nativeBg} />;
+  }
 
   return (
     <View pointerEvents="none" style={styles.container}>
-      {/* Deep Atmospheric Nebula Glows */}
-      <Animated.View
-        style={[
-          styles.nebulaCore,
-          { transform: [{ scale: pulseDepth }] },
-        ]}
+      <canvas
+        ref={canvasRef}
+        style={{
+          width: "100%",
+          height: "100%",
+          display: "block",
+        }}
       />
-      <View style={styles.nebulaBottom} />
-
-      {/* 3D Perspective Tilted Orbital Rings */}
-      <View style={styles.orbitalPlane}>
-        <Animated.View
-          style={[
-            styles.ringOuter,
-            {
-              transform: [
-                { perspective: 800 },
-                { rotateX: "68deg" },
-                { rotateY: "-14deg" },
-                { rotateZ: spinOuter },
-              ],
-            },
-          ]}
-        >
-          <View style={styles.ringNodeTop} />
-          <View style={styles.ringNodeBottom} />
-        </Animated.View>
-
-        <Animated.View
-          style={[
-            styles.ringInner,
-            {
-              transform: [
-                { perspective: 800 },
-                { rotateX: "72deg" },
-                { rotateY: "18deg" },
-                { rotateZ: spinInner },
-              ],
-            },
-          ]}
-        >
-          <View style={styles.ringNodeGold} />
-        </Animated.View>
-      </View>
-
-      {/* Floating 3D Depth Spheres */}
-      <Animated.View
-        style={[
-          styles.spherePrimary,
-          {
-            transform: [{ translateY: translateY1 }, { scale: scale1 }],
-          },
-        ]}
-      >
-        <View style={styles.sphereHighlight} />
-      </Animated.View>
-
-      <Animated.View
-        style={[
-          styles.sphereSecondary,
-          {
-            transform: [{ translateY: translateY2 }],
-          },
-        ]}
-      >
-        <View style={styles.sphereHighlightSmall} />
-      </Animated.View>
-
-      {/* Subtle 3D Perspective Floor Grid */}
-      <View style={styles.perspectiveGridWrapper}>
-        <View style={styles.gridLineHorizontal1} />
-        <View style={styles.gridLineHorizontal2} />
-        <View style={styles.gridLineHorizontal3} />
-      </View>
     </View>
   );
 }
@@ -193,143 +320,11 @@ export function Ambient3DBackground() {
 const styles = StyleSheet.create({
   container: {
     ...StyleSheet.absoluteFillObject,
-    overflow: "hidden",
-    backgroundColor: "#070811",
     zIndex: 0,
   },
-  nebulaCore: {
-    position: "absolute",
-    top: height * 0.12,
-    left: width * 0.1,
-    width: width * 0.8,
-    height: width * 0.8,
-    borderRadius: width * 0.4,
-    backgroundColor: "rgba(99, 102, 241, 0.16)",
-  },
-  nebulaBottom: {
-    position: "absolute",
-    bottom: -60,
-    right: -40,
-    width: width * 0.75,
-    height: width * 0.75,
-    borderRadius: width * 0.375,
-    backgroundColor: "rgba(168, 85, 247, 0.14)",
-  },
-  orbitalPlane: {
-    position: "absolute",
-    top: height * 0.18,
-    left: 0,
-    right: 0,
-    height: 320,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  ringOuter: {
-    position: "absolute",
-    width: 310,
-    height: 310,
-    borderRadius: 155,
-    borderWidth: 1.5,
-    borderColor: "rgba(129, 140, 248, 0.35)",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  ringNodeTop: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: "#818CF8",
-    marginTop: -5,
-    shadowColor: "#818CF8",
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.9,
-    shadowRadius: 8,
-  },
-  ringNodeBottom: {
-    width: 7,
-    height: 7,
-    borderRadius: 3.5,
-    backgroundColor: "#34D399",
-    marginBottom: -3.5,
-  },
-  ringInner: {
-    position: "absolute",
-    width: 220,
-    height: 220,
-    borderRadius: 110,
-    borderWidth: 1.2,
-    borderColor: "rgba(192, 132, 252, 0.32)",
-    alignItems: "flex-end",
-    justifyContent: "center",
-  },
-  ringNodeGold: {
-    width: 9,
-    height: 9,
-    borderRadius: 4.5,
-    backgroundColor: "#FBBF24",
-    marginRight: -4.5,
-    shadowColor: "#FBBF24",
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.9,
-    shadowRadius: 8,
-  },
-  spherePrimary: {
-    position: "absolute",
-    top: height * 0.16,
-    right: 26,
-    width: 54,
-    height: 54,
-    borderRadius: 27,
-    backgroundColor: "rgba(79, 70, 229, 0.35)",
-    borderWidth: 1,
-    borderColor: "rgba(165, 180, 252, 0.45)",
-    padding: 8,
-  },
-  sphereHighlight: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    backgroundColor: "rgba(255, 255, 255, 0.45)",
-  },
-  sphereSecondary: {
-    position: "absolute",
-    bottom: height * 0.24,
-    left: 22,
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: "rgba(16, 185, 129, 0.22)",
-    borderWidth: 1,
-    borderColor: "rgba(52, 211, 153, 0.4)",
-    padding: 6,
-  },
-  sphereHighlightSmall: {
-    width: 9,
-    height: 9,
-    borderRadius: 4.5,
-    backgroundColor: "rgba(255, 255, 255, 0.4)",
-  },
-  perspectiveGridWrapper: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 140,
-    justifyContent: "space-evenly",
-    opacity: 0.22,
-  },
-  gridLineHorizontal1: {
-    height: 1,
-    backgroundColor: "#6366F1",
-    transform: [{ scaleX: 0.85 }],
-  },
-  gridLineHorizontal2: {
-    height: 1,
-    backgroundColor: "#6366F1",
-    transform: [{ scaleX: 0.92 }],
-  },
-  gridLineHorizontal3: {
-    height: 1,
-    backgroundColor: "#6366F1",
+  nativeBg: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "#060814",
+    zIndex: 0,
   },
 });

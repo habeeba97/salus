@@ -8,13 +8,14 @@ import { Ambient3DBackground } from "../../src/components/Ambient3DBackground";
 import { StreakAndQuestsSection } from "../../src/components/StreakAndQuestsSection";
 import { RobotaAnimatedTheater } from "../../src/components/RobotaAnimatedTheater";
 import { SanctuaryConnectorsHub } from "../../src/components/SanctuaryConnectorsHub";
+import { SanctuaryProfileSetupCard } from "../../src/components/SanctuaryProfileSetupCard";
 
 export default function HomeScreen() {
   const router = useRouter();
 
   return (
     <Screen style={styles.screenBg}>
-      {/* Full-Screen 3D Ambient Layer */}
+      {/* Full-Screen Luminous Somatic Movement & Aurora Background */}
       <Ambient3DBackground />
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
@@ -22,6 +23,9 @@ export default function HomeScreen() {
           <AppText style={styles.kicker}>SALUS • BIOLOGICAL SANCTUARY</AppText>
           <AppText style={styles.title}>Nervous State & Sanctuary</AppText>
         </View>
+
+        {/* FitOn-Inspired Personalized Sanctuary Blueprint */}
+        <SanctuaryProfileSetupCard />
 
         {/* Direct-Play Animated Robota Video Theater */}
         <RobotaAnimatedTheater />
@@ -97,7 +101,7 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  screenBg: { backgroundColor: "#070811" },
+  screenBg: { backgroundColor: "transparent" },
   scroll: { paddingBottom: 40, gap: 16, zIndex: 2 },
   header: { paddingTop: 8, paddingHorizontal: 16 },
   kicker: { fontSize: 10, fontWeight: "800", color: "#818CF8", letterSpacing: 1.5 },
@@ -109,7 +113,7 @@ const styles = StyleSheet.create({
   enterText: { fontSize: 11, color: "#C084FC", fontWeight: "800" },
   alchemyCard: {
     marginHorizontal: 16,
-    backgroundColor: "rgba(21, 16, 40, 0.78)",
+    backgroundColor: "rgba(21, 16, 40, 0.72)",
     borderRadius: 22,
     padding: 18,
     borderWidth: 1.5,
@@ -118,7 +122,7 @@ const styles = StyleSheet.create({
   },
   defuserCard: {
     marginHorizontal: 16,
-    backgroundColor: "rgba(13, 14, 28, 0.78)",
+    backgroundColor: "rgba(13, 14, 28, 0.72)",
     borderRadius: 22,
     padding: 18,
     borderWidth: 1.5,
@@ -140,7 +144,7 @@ const styles = StyleSheet.create({
   grid: { flexDirection: "row", gap: 12, paddingHorizontal: 16 },
   tile: {
     flex: 1,
-    backgroundColor: "rgba(19, 22, 39, 0.78)",
+    backgroundColor: "rgba(19, 22, 39, 0.72)",
     padding: 16,
     borderRadius: 18,
     borderWidth: 1,
@@ -152,7 +156,7 @@ const styles = StyleSheet.create({
   tileSub: { fontSize: 11, color: "#94A3B8" },
   safetyCard: {
     marginHorizontal: 16,
-    backgroundColor: "rgba(26, 21, 35, 0.82)",
+    backgroundColor: "rgba(26, 21, 35, 0.76)",
     paddingVertical: 14,
     borderRadius: 14,
     alignItems: "center",
