@@ -1,103 +1,148 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useState } from "react";
+import { View, StyleSheet, ScrollView, Pressable, Platform } from "react-native";
+import { Screen } from "../../src/components/Screen";
+import { AppText } from "../../src/components/AppText";
+import { AnimatedExerciseStudio } from "../../src/components/AnimatedExerciseStudio";
+
+const YOUTUBE_ROUTINES = [
+  {
+    id: "FB5-7tIiX-I",
+    tag: "KIDS ANIMATED WORKOUT",
+    title: "12 Easy Exercises For Kids At Home",
+    duration: "15 MIN • LITTLE SPORTS",
+  },
+  {
+    id: "9o0UPuDBM8M",
+    tag: "ADULTS ANATOMICAL MORNING FLOW",
+    title: "Fast Morning Exercises for Full Body",
+    duration: "15 MIN • MUSCLE HIGHLIGHT",
+  },
+  {
+    id: "LhL5SNZfnQs",
+    tag: "ADULTS FULL BODY CHALLENGE",
+    title: "14 Days Home Workout Routine",
+    duration: "22 MIN • ROBERTA'S GYM",
+  },
+];
 
 export default function PracticeScreen() {
-  const [activeTimer, setActiveTimer] = useState<string | null>(null);
-  const [seconds, setSeconds] = useState(60);
-  const [isRunning, setIsRunning] = useState(false);
-
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (isRunning && seconds > 0) {
-      interval = setInterval(() => setSeconds((s) => s - 1), 1000);
-    } else if (seconds === 0) {
-      setIsRunning(false);
-    }
-    return () => clearInterval(interval);
-  }, [isRunning, seconds]);
-
-  const startWorkout = (name: string, durationSec: number) => {
-    setActiveTimer(name);
-    setSeconds(durationSec);
-    setIsRunning(true);
-  };
+  const [activeVideoId, setActiveVideoId] = useState<string>("FB5-7tIiX-I");
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.header}>⚡ Daily Fitness & Somatic Reset</Text>
-        <Text style={styles.subHeader}>Gentle mobility, mini-cycle cardio, and breath pacing</Text>
-
-        {/* Live Active Timer Card */}
-        <View style={styles.timerCard}>
-          <Text style={styles.timerTitle}>{activeTimer || 'Ready to Move'}</Text>
-          <Text style={styles.timerClock}>
-            {Math.floor(seconds / 60)}:{seconds % 60 < 10 ? `0${seconds % 60}` : seconds % 60}
-          </Text>
-          <View style={styles.btnRow}>
-            <Pressable
-              onPress={() => setIsRunning(!isRunning)}
-              style={[styles.btn, isRunning ? styles.btnPause : styles.btnStart]}
-            >
-              <Text style={styles.btnText}>{isRunning ? 'Pause' : 'Start Pace'}</Text>
-            </Pressable>
-            <Pressable
-              onPress={() => { setIsRunning(false); setSeconds(60); }}
-              style={styles.btnReset}
-            >
-              <Text style={styles.btnText}>Reset</Text>
-            </Pressable>
-          </View>
+    <Screen style={styles.screenBg}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
+        <View style={styles.header}>
+          <AppText style={styles.kicker}>SALUS • ANIMATED MOVEMENT STUDIO</AppText>
+          <AppText style={styles.title}>Kids & Adults Exercise Lab</AppText>
+          <AppText style={styles.sub}>
+            Interactive 60fps animated workouts with rep counters & full guided video routines.
+          </AppText>
         </View>
 
-        {/* Quick Workout Routines */}
-        <Text style={styles.sectionTitle}>Movement Blocks</Text>
+        {/* Custom Original 60fps Kids & Adults Animated Exercise Studio */}
+        <AnimatedExerciseStudio />
 
-        <Pressable
-          onPress={() => startWorkout('🚴 Mini-Cycle Moderate Cardio', 600)}
-          style={styles.card}
-        >
-          <Text style={styles.cardTitle}>🚴 Mini-Cycle Steady Cadence</Text>
-          <Text style={styles.cardDesc}>10 min low-impact pedal cadence to activate lymphatic drainage and blood flow.</Text>
-        </Pressable>
+        {/* Official YouTube Embedded Video Theater (Copyright-Safe) */}
+        <View style={styles.videoSection}>
+          <AppText style={styles.videoKicker}>FULL GUIDED VIDEO ROUTINES</AppText>
+          <AppText style={styles.videoHeading}>Watch & Follow Along</AppText>
 
-        <Pressable
-          onPress={() => startWorkout('🧘 Posture & Pelvic Alignment', 300)}
-          style={styles.card}
-        >
-          <Text style={styles.cardTitle}>🧘 Posture & Spine Release</Text>
-          <Text style={styles.cardDesc}>5 min spine elongation, seated torso twists, and diaphragm opening.</Text>
-        </Pressable>
+          <View style={styles.videoTabs}>
+            {YOUTUBE_ROUTINES.map((vid) => {
+              const selected = vid.id === activeVideoId;
+              return (
+                <Pressable
+                  key={vid.id}
+                  onPress={() => setActiveVideoId(vid.id)}
+                  style={[styles.vidTab, selected && styles.vidTabActive]}
+                >
+                  <AppText style={[styles.vidTabTag, selected && { color: "#38BDF8" }]}>
+                    {vid.tag}
+                  </AppText>
+                  <AppText style={styles.vidTabTitle}>{vid.title}</AppText>
+                  <AppText style={styles.vidTabMeta}>{vid.duration}</AppText>
+                </Pressable>
+              );
+            })}
+          </View>
 
-        <Pressable
-          onPress={() => startWorkout('🌬 Box Breathing Reset', 180)}
-          style={styles.card}
-        >
-          <Text style={styles.cardTitle}>🌬 4-4-4-4 Autonomic Calming</Text>
-          <Text style={styles.cardDesc}>3 min vagus nerve reset to lower cortisol and heart rate variability.</Text>
-        </Pressable>
+          {Platform.OS === "web" && (
+            <View style={styles.iframeBox}>
+              <iframe
+                width="100%"
+                height="220"
+                src={`https://www.youtube-nocookie.com/embed/${activeVideoId}?rel=0`}
+                title="Guided Exercise Video"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                style={{ borderRadius: 18, display: "block" }}
+              />
+            </View>
+          )}
+        </View>
       </ScrollView>
-    </SafeAreaView>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#06070D' },
-  container: { padding: 18, gap: 14 },
-  header: { fontSize: 20, fontWeight: '800', color: '#FFFFFF' },
-  subHeader: { fontSize: 13, color: '#94A3B8', marginBottom: 6 },
-  timerCard: { backgroundColor: '#111528', padding: 20, borderRadius: 18, alignItems: 'center', borderWidth: 1, borderColor: '#1E2548' },
-  timerTitle: { color: '#C7D2FE', fontSize: 15, fontWeight: '700' },
-  timerClock: { color: '#FFFFFF', fontSize: 44, fontWeight: '900', marginVertical: 10 },
-  btnRow: { flexDirection: 'row', gap: 10 },
-  btn: { paddingVertical: 10, paddingHorizontal: 22, borderRadius: 10 },
-  btnStart: { backgroundColor: '#4F46E5' },
-  btnPause: { backgroundColor: '#D97706' },
-  btnReset: { backgroundColor: '#262C4A', paddingVertical: 10, paddingHorizontal: 18, borderRadius: 10 },
-  btnText: { color: '#FFF', fontWeight: '700', fontSize: 13 },
-  sectionTitle: { fontSize: 16, fontWeight: '700', color: '#F1F5F9', marginTop: 8 },
-  card: { backgroundColor: '#0D1122', padding: 16, borderRadius: 14, borderWidth: 1, borderColor: '#181E38', gap: 4 },
-  cardTitle: { color: '#E2E8F0', fontSize: 14, fontWeight: '700' },
-  cardDesc: { color: '#64748B', fontSize: 12, lineHeight: 18 },
+  screenBg: { backgroundColor: "#070811" },
+  scroll: { padding: 16, paddingBottom: 44, gap: 18 },
+  header: { gap: 4 },
+  kicker: { fontSize: 10, fontWeight: "800", color: "#38BDF8", letterSpacing: 1.4 },
+  title: { fontSize: 23, fontWeight: "800", color: "#F8FAFC" },
+  sub: { fontSize: 12, color: "#94A3B8", lineHeight: 17 },
+  videoSection: {
+    gap: 10,
+    marginTop: 4,
+  },
+  videoKicker: {
+    fontSize: 9.5,
+    fontWeight: "800",
+    color: "#F472B6",
+    letterSpacing: 1.2,
+  },
+  videoHeading: {
+    fontSize: 17,
+    fontWeight: "800",
+    color: "#F8FAFC",
+  },
+  videoTabs: {
+    gap: 8,
+  },
+  vidTab: {
+    backgroundColor: "rgba(19, 23, 42, 0.85)",
+    padding: 13,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.1)",
+    gap: 2,
+  },
+  vidTabActive: {
+    borderColor: "#38BDF8",
+    backgroundColor: "rgba(56, 189, 248, 0.12)",
+  },
+  vidTabTag: {
+    fontSize: 9,
+    fontWeight: "900",
+    color: "#94A3B8",
+    letterSpacing: 0.9,
+  },
+  vidTabTitle: {
+    fontSize: 13.5,
+    fontWeight: "800",
+    color: "#FFFFFF",
+  },
+  vidTabMeta: {
+    fontSize: 10.5,
+    color: "#94A3B8",
+  },
+  iframeBox: {
+    borderRadius: 20,
+    overflow: "hidden",
+    borderWidth: 1.5,
+    borderColor: "rgba(56, 189, 248, 0.45)",
+    backgroundColor: "#000000",
+  },
 });
